@@ -11,35 +11,56 @@
     .light{--bg:#f0f2f8;--surface:#fff;--surface2:#e8eaf2;--border:#d1d5e0;--text:#1a1d27;--muted:#6b7280}
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh;transition:background .3s,color .3s}
+
+    /* ── Header ── */
     header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:16px}
     .hl{display:flex;align-items:center;gap:14px}
     .clogo{height:52px;width:auto;object-fit:contain}
     .hdiv{width:1px;height:44px;background:var(--border)}
-    .logo{font-size:24px;font-weight:900;letter-spacing:-1px;white-space:nowrap;line-height:1}
+    .logo{font-size:24px;font-weight:900;letter-spacing:-1px;white-space:nowrap;line-height:1.1}
     .logo span{color:var(--accent)}
-    .logo sub{font-size:11px;color:var(--muted);font-weight:400;letter-spacing:0;display:block;margin-top:1px}
-    .hr{display:flex;align-items:center;gap:12px}
+    .logo sub{font-size:11px;color:var(--muted);font-weight:400;letter-spacing:0;display:block}
+    .hr{display:flex;align-items:center;gap:10px}
     .meta{font-size:12px;color:var(--muted)}
     .tbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;transition:all .2s}
     .tbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* ── Upload ── */
     .upload-bar{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
     .upload-bar label{background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
     #fileInput{display:none}
     .uhint,.ustatus{font-size:12px;color:var(--muted)}
     .ustatus{color:var(--accent2)}
+
+    /* ── Filters ── */
     .filters{display:flex;flex-wrap:wrap;gap:12px;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);align-items:flex-end}
     .fg{display:flex;flex-direction:column;gap:4px}
     .fg label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-    select,input[type=date]{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;outline:none;min-width:130px}
+    select,input[type=date]{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;outline:none;min-width:120px}
     select:focus,input:focus{border-color:var(--accent)}
-    .bclear{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-top:18px}
+    .bclear{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;align-self:flex-end}
     .bclear:hover{border-color:var(--accent);color:var(--text)}
-    .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;padding:18px 24px}
+
+    /* ── Year Slider ── */
+    .year-filter{display:flex;flex-direction:column;gap:6px;min-width:200px}
+    .year-filter label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    .year-label{font-size:12px;color:var(--accent);font-weight:600;text-align:center}
+    .slider-wrap{position:relative;height:20px}
+    .slider-wrap input[type=range]{position:absolute;width:100%;height:4px;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;top:50%;transform:translateY(-50%)}
+    .slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);pointer-events:all;cursor:pointer;border:2px solid var(--surface)}
+    .slider-wrap input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);pointer-events:all;cursor:pointer;border:2px solid var(--surface)}
+    .slider-track{position:absolute;top:50%;transform:translateY(-50%);width:100%;height:4px;background:var(--border);border-radius:2px}
+    .slider-fill{position:absolute;top:50%;transform:translateY(-50%);height:4px;background:var(--accent);border-radius:2px}
+
+    /* ── KPIs ── */
+    .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:18px 24px}
     .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
     .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
     .kpi-value{font-size:24px;font-weight:700;line-height:1}
     .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
     .kpi.good .kpi-value{color:var(--accent2)}.kpi.warn .kpi-value{color:var(--warn)}.kpi.info .kpi-value{color:var(--accent)}
+
+    /* ── Sections ── */
     .section{padding:0 24px 20px}
     .sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
     .sec-title{font-size:16px;font-weight:700}
@@ -52,6 +73,7 @@
     tbody tr:last-child{border-bottom:none}
     tbody tr:hover{background:var(--surface2)}
     tbody td{padding:9px 12px;white-space:nowrap}
+    .td-comments{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px}
     .clickrow{cursor:pointer}
     .clickrow:hover td{background:rgba(79,124,255,.08)!important}
     .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
@@ -59,43 +81,57 @@
     .b-green{background:rgba(0,212,170,.15);color:var(--accent2)}
     .b-sub{background:rgba(245,158,11,.1);color:var(--warn);font-size:10px}
     .p-hi{color:var(--accent2);font-weight:700}.p-mid{color:var(--warn);font-weight:700}.p-lo{color:var(--danger);font-weight:700}
-    .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 24px 20px}
-    @media(max-width:900px){.charts-grid{grid-template-columns:1fr}}
-    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
-    .chart-card.wide{grid-column:1/-1}
-    .chart-title{font-size:13px;font-weight:600;margin-bottom:14px}
-    .chart-wrap{position:relative;height:240px}
+
+    /* ── Charts ── */
+    .charts-row{display:grid;gap:16px;padding:0 24px 16px}
+    .charts-row.single{grid-template-columns:1fr}
+    .charts-row.double{grid-template-columns:1fr 1fr}
+    @media(max-width:900px){.charts-row.double{grid-template-columns:1fr}}
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+    .chart-title{font-size:12px;font-weight:600;margin-bottom:10px;color:var(--muted)}
+    .chart-wrap{position:relative;height:190px}
+
+    /* ── Pagination ── */
     .pagination{display:flex;gap:6px;align-items:center;padding:14px 0 0;justify-content:center}
     .pg-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:5px;cursor:pointer;font-size:13px}
     .pg-btn:hover,.pg-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
     .pg-info{font-size:12px;color:var(--muted);padding:0 8px}
+
+    /* ── Loading ── */
     .loading{display:flex;align-items:center;justify-content:center;height:300px;color:var(--muted)}
     .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px}
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── Popup ─────────────────────────────────────────────────────────── */
-    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:16px}
+    /* ── Popup / Overlay ── */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
     .overlay.open{display:flex}
-    .popup{background:#fff;color:#111;border-radius:4px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;padding:28px 32px;font-family:'Times New Roman',serif;font-size:13px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-    .popup-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#333;line-height:1}
+    .popup{background:#fff;color:#111;border-radius:6px;width:100%;max-width:700px;margin:auto;padding:28px 32px 24px;font-family:'Times New Roman',serif;font-size:13px;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+    @media print{.overlay{display:flex!important;position:static;background:none;padding:0}.popup{box-shadow:none;max-width:100%;padding:16px}.popup-close,.popup-dl{display:none!important}body>*:not(.overlay){display:none}}
+    .popup-actions{position:absolute;top:12px;right:14px;display:flex;gap:8px}
+    .popup-close,.popup-dl{background:none;border:1px solid #ccc;font-size:12px;cursor:pointer;color:#555;padding:4px 10px;border-radius:4px;font-family:sans-serif}
+    .popup-dl{background:#1a1d27;color:#e2e8f0;border-color:#2e3248}
+    .popup-dl:hover{background:#4f7cff;border-color:#4f7cff}
+    .popup-close:hover{background:#f5f5f5}
     .popup-logo{text-align:center;margin-bottom:6px}
-    .popup-logo img{height:60px}
-    .popup-title{text-align:center;font-weight:bold;font-size:15px;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
-    .popup-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;margin-bottom:14px;font-size:12.5px}
-    .popup-meta-row{display:flex;gap:6px;border-bottom:1px solid #ccc;padding-bottom:3px}
-    .popup-meta-row label{font-weight:bold;white-space:nowrap;min-width:110px}
-    .popup-pressure-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
-    .popup-pressure-table th{background:#e8e8e8;border:1px solid #aaa;padding:4px 6px;text-align:center;font-weight:bold}
-    .popup-pressure-table td{border:1px solid #ccc;padding:4px 6px;text-align:center}
-    .popup-pressure-table td:first-child,.popup-pressure-table td:nth-child(2){text-align:left;font-weight:500}
-    .popup-footer{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;font-size:12.5px}
-    .popup-footer-row{border-bottom:1px solid #ccc;padding-bottom:4px}
-    .popup-footer-row label{font-weight:bold}
-    .popup-avg-hi{background:#d4edda;color:#155724}
-    .popup-avg-mid{background:#fff3cd;color:#856404}
-    .popup-avg-lo{background:#f8d7da;color:#721c24}
-    .popup-comments{border:1px solid #ccc;padding:8px;min-height:48px;font-style:italic;font-size:12px;margin-top:8px;border-radius:2px}
-    .popup-comments label{font-weight:bold;display:block;margin-bottom:4px;font-style:normal}
+    .popup-logo img{height:56px}
+    .popup-title{text-align:center;font-weight:bold;font-size:14px;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
+    .popup-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;margin-bottom:14px;font-size:12.5px}
+    .pmr{display:flex;gap:6px;border-bottom:1px solid #ddd;padding-bottom:3px;align-items:baseline}
+    .pmr label{font-weight:bold;white-space:nowrap;min-width:110px;font-size:12px}
+    .pressure-tbl{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
+    .pressure-tbl th{background:#e8e8e8;border:1px solid #aaa;padding:5px 7px;text-align:center;font-weight:bold}
+    .pressure-tbl td{border:1px solid #ccc;padding:5px 7px;text-align:center;transition:background .2s}
+    .pressure-tbl td.lane-name{text-align:left;font-weight:500;background:#f5f5f5!important}
+    .pressure-tbl td.lane-avg{font-weight:bold;background:#f0f0f0!important}
+    .pressure-tbl td.p-flag{font-weight:700}
+    .pop-footer{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;margin-bottom:12px;font-size:12.5px}
+    .pfr{border-bottom:1px solid #ddd;padding-bottom:4px}
+    .pfr label{font-weight:bold}
+    .avg-hi{background:#d4edda;color:#155724;padding:2px 8px;border-radius:4px;font-weight:bold;display:inline-block}
+    .avg-mid{background:#fff3cd;color:#856404;padding:2px 8px;border-radius:4px;font-weight:bold;display:inline-block}
+    .avg-lo{background:#f8d7da;color:#721c24;padding:2px 8px;border-radius:4px;font-weight:bold;display:inline-block}
+    .pop-comments{border:1px solid #ccc;padding:8px 10px;min-height:44px;font-size:12px;border-radius:2px}
+    .pop-comments-label{font-weight:bold;font-size:12px;margin-bottom:4px;display:block}
   </style>
 </head>
 <body>
@@ -112,13 +148,24 @@
 </header>
 
 <div class="upload-bar">
-  <label for="fileInput">📂 Upload New CSV</label>
+  <label for="fileInput">📂 Upload CSV</label>
   <input type="file" id="fileInput" accept=".csv"/>
-  <span class="uhint">Upload updated database.csv to patch in fresh data</span>
+  <span class="uhint">Upload updated database.csv to merge fresh data</span>
   <span class="ustatus" id="upStatus"></span>
 </div>
 
 <div class="filters">
+  <!-- Year Slider -->
+  <div class="year-filter">
+    <label>Year Range</label>
+    <div class="year-label" id="yearLabel">All Years</div>
+    <div class="slider-wrap">
+      <div class="slider-track"></div>
+      <div class="slider-fill" id="sliderFill"></div>
+      <input type="range" id="yearMin" min="2015" max="2026" value="2015" step="1" oninput="onSlider()"/>
+      <input type="range" id="yearMax" min="2015" max="2026" value="2026" step="1" oninput="onSlider()"/>
+    </div>
+  </div>
   <div class="fg"><label>Date From</label><input type="date" id="fFrom"/></div>
   <div class="fg"><label>Date To</label><input type="date" id="fTo"/></div>
   <div class="fg"><label>Machine</label><select id="fMachine"><option value="">All Machines</option></select></div>
@@ -131,8 +178,9 @@
 
 <div id="loadingDiv" class="loading"><div class="spinner"></div>Loading database…</div>
 <div id="dash" style="display:none">
+
+  <!-- KPIs -->
   <div class="kpis">
-    <div class="kpi info"><div class="kpi-label">Total Records</div><div class="kpi-value" id="kTotal">—</div><div class="kpi-sub">lane readings</div></div>
     <div class="kpi info"><div class="kpi-label">Incoming Checks</div><div class="kpi-value" id="kIncoming">—</div><div class="kpi-sub">unique tests (n)</div></div>
     <div class="kpi good"><div class="kpi-label">Avg Pressure</div><div class="kpi-value" id="kAvg">—</div><div class="kpi-sub">test-level avg psi</div></div>
     <div class="kpi warn"><div class="kpi-label">Min Pressure</div><div class="kpi-value" id="kMin">—</div><div class="kpi-sub">test-level min</div></div>
@@ -148,46 +196,56 @@
       <table>
         <thead><tr>
           <th>Date</th><th>PO # / Lot Code</th><th>Supplier</th><th>Sub-Mfr</th>
-          <th>Machine</th><th>Tested By</th>
-          <th># Datapoints</th><th>Avg Pressure</th><th>Min</th><th>Max</th>
+          <th>Machine</th><th>Tested By</th><th># Datapoints</th>
+          <th>Avg Pressure</th><th>Min</th><th>Max</th><th>Comments</th>
         </tr></thead>
         <tbody id="snapBody"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- Charts -->
-  <div class="charts-grid">
-    <div class="chart-card wide">
+  <!-- Charts Row 1: Timeline full width -->
+  <div class="charts-row single">
+    <div class="chart-card">
       <div class="chart-title">Avg Burst Pressure Over Time (per test)</div>
       <div class="chart-wrap"><canvas id="cTimeline"></canvas></div>
     </div>
-    <div class="chart-card wide">
+  </div>
+
+  <!-- Charts Row 2: Bell + Supplier side by side -->
+  <div class="charts-row double">
+    <div class="chart-card">
       <div class="chart-title" id="bellTitle">Pressure Distribution — Top 4 Suppliers (Bell Curve)</div>
       <div class="chart-wrap"><canvas id="cBell"></canvas></div>
     </div>
-    <div class="chart-card wide">
-      <div class="chart-title">Avg Pressure &amp; # of Checks by Supplier</div>
+    <div class="chart-card">
+      <div class="chart-title">Avg Pressure &amp; n by Supplier</div>
       <div class="chart-wrap"><canvas id="cMfr"></canvas></div>
     </div>
   </div>
 
-  <!-- All Records -->
+  <!-- All Records (test-level, one row per unique PO/Lot) -->
   <div class="section">
-    <div class="sec-hdr"><div class="sec-title">All Records</div><span class="sec-badge" id="tblCount">—</span></div>
+    <div class="sec-hdr">
+      <div class="sec-title">All Records</div>
+      <span class="sec-badge" id="tblCount">—</span>
+      <span style="font-size:12px;color:var(--muted)">— one row per test · click to expand</span>
+    </div>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th onclick="sortBy('DATE')">Date ↕</th>
-          <th onclick="sortBy('PO')">PO / Lot ↕</th>
-          <th onclick="sortBy('Supplier Group')">Supplier ↕</th>
-          <th onclick="sortBy('Film Manufacturer')">Sub-Mfr ↕</th>
-          <th onclick="sortBy('Machine')">Machine ↕</th>
-          <th onclick="sortBy('Lane')">Lane ↕</th>
-          <th onclick="sortBy('Tested By')">Tested By ↕</th>
-          <th onclick="sortBy('PressureAverage')">Test Avg ↕</th>
-          <th onclick="sortBy('PressureMIN')">Min ↕</th>
-          <th onclick="sortBy('PressureMAX')">Max ↕</th>
+          <th onclick="sortBy('date')">Date ↕</th>
+          <th onclick="sortBy('po')">PO # ↕</th>
+          <th onclick="sortBy('lot')">Lot Code ↕</th>
+          <th onclick="sortBy('group')">Supplier ↕</th>
+          <th onclick="sortBy('mfr')">Sub-Mfr ↕</th>
+          <th onclick="sortBy('machine')">Machine ↕</th>
+          <th onclick="sortBy('tester')">Tested By ↕</th>
+          <th onclick="sortBy('count')"># Pts ↕</th>
+          <th onclick="sortBy('avg')">Avg ↕</th>
+          <th onclick="sortBy('min')">Min ↕</th>
+          <th onclick="sortBy('max')">Max ↕</th>
+          <th>Comments</th>
         </tr></thead>
         <tbody id="tblBody"></tbody>
       </table>
@@ -197,21 +255,27 @@
 </div>
 
 <!-- Popup -->
-<div class="overlay" id="overlay" onclick="closePopup(event)">
+<div class="overlay" id="overlay" onclick="closePopupClick(event)">
   <div class="popup" id="popup">
-    <button class="popup-close" onclick="closePopup(null)">✕</button>
-    <div class="popup-logo"><img id="popLogo" src="" alt="Alamance Foods" style="height:56px"/></div>
+    <div class="popup-actions">
+      <button class="popup-dl" onclick="downloadTest()">⬇ Download</button>
+      <button class="popup-close" onclick="closePopup()">✕ Close</button>
+    </div>
+    <div class="popup-logo"><img id="popLogo" src="" alt="Alamance Foods"/></div>
     <div class="popup-title">Film Compression Test</div>
     <div class="popup-meta" id="popMeta"></div>
-    <table class="popup-pressure-table" id="popTable">
+    <table class="pressure-tbl">
       <thead><tr>
-        <th>Lane</th><th>Press #1</th><th>Press #2</th><th>Press #3</th>
-        <th>Press #4</th><th>Press #5</th><th>Press #6</th><th>Lane Avg</th>
+        <th>Lane</th>
+        <th>Press #1</th><th>Press #2</th><th>Press #3</th>
+        <th>Press #4</th><th>Press #5</th><th>Press #6</th>
+        <th>Lane Avg</th>
       </tr></thead>
       <tbody id="popRows"></tbody>
     </table>
-    <div class="popup-footer" id="popFooter"></div>
-    <div class="popup-comments"><label>Comments</label><div id="popComments">—</div></div>
+    <div class="pop-footer" id="popFooter"></div>
+    <span class="pop-comments-label">Comments</span>
+    <div class="pop-comments" id="popComments">—</div>
   </div>
 </div>
 
@@ -220,6 +284,7 @@ const LOGO='data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTE
 document.getElementById('cLogo').src=LOGO;
 document.getElementById('popLogo').src=LOGO;
 
+/* Theme */
 let dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
 function setTheme(d){dark=d;document.body.classList.toggle('light',!d);document.getElementById('themeBtn').textContent=d?'☀️ Light':'🌙 Dark'}
 function toggleTheme(){setTheme(!dark)}
@@ -227,8 +292,10 @@ setTheme(dark);
 window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',e=>setTheme(e.matches));
 
 const MAX_P=2000,PAGE=50;
-let allData=[],fData=[],sortCol='DATE',sortDir=-1,pg=1,charts={};
+let allData=[],fData=[],allTests=[],sortCol='date',sortDir=-1,pg=1,charts={};
+let activeTest=null;
 
+/* Validity */
 function valid(r){
   const a=+r.PressureAverage,mn=+r.PressureMIN,mx=+r.PressureMAX;
   if(!isNaN(a)&&a>MAX_P)return false;
@@ -236,10 +303,21 @@ function valid(r){
   return true;
 }
 
+/* Load */
 async function init(){
   try{
     const raw=await new Promise((res,rej)=>Papa.parse('data/database.csv',{download:true,header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}));
     allData=raw.filter(valid);
+    const years=[...new Set(allData.map(r=>r.DATE&&r.DATE.slice(0,4)).filter(Boolean))].map(Number).filter(n=>n>2000).sort();
+    if(years.length){
+      document.getElementById('yearMin').min=years[0];
+      document.getElementById('yearMin').max=years[years.length-1];
+      document.getElementById('yearMin').value=years[0];
+      document.getElementById('yearMax').min=years[0];
+      document.getElementById('yearMax').max=years[years.length-1];
+      document.getElementById('yearMax').value=years[years.length-1];
+      updateSliderFill();
+    }
     document.getElementById('metaText').textContent=`${allData.length.toLocaleString()} records`;
     setupFilters();applyFilters();
     document.getElementById('loadingDiv').style.display='none';
@@ -247,6 +325,7 @@ async function init(){
   }catch(e){document.getElementById('loadingDiv').innerHTML=`<span style="color:var(--danger)">Failed to load database.csv</span>`}
 }
 
+/* Upload */
 document.getElementById('fileInput').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   const st=document.getElementById('upStatus');st.textContent='Processing…';
@@ -262,6 +341,23 @@ document.getElementById('fileInput').addEventListener('change',async e=>{
   e.target.value='';
 });
 
+/* Year Slider */
+function updateSliderFill(){
+  const sl=document.getElementById('yearMin'),sh=document.getElementById('yearMax');
+  const mn=parseInt(sl.min),mx=parseInt(sl.max);
+  const lo=(+sl.value-mn)/(mx-mn)*100,hi=(+sh.value-mn)/(mx-mn)*100;
+  document.getElementById('sliderFill').style.left=lo+'%';
+  document.getElementById('sliderFill').style.width=(hi-lo)+'%';
+  const lo2=+sl.value,hi2=+sh.value;
+  document.getElementById('yearLabel').textContent=lo2===hi2?lo2:`${lo2} – ${hi2}`;
+}
+function onSlider(){
+  const sl=document.getElementById('yearMin'),sh=document.getElementById('yearMax');
+  if(+sl.value>+sh.value)sh.value=sl.value;
+  updateSliderFill();applyFilters();
+}
+
+/* Filters */
 function populateSel(id,vals){
   const el=document.getElementById(id),cur=el.value,f=el.options[0].outerHTML;
   el.innerHTML=f+[...vals].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
@@ -277,20 +373,34 @@ function setupFilters(){
 }
 document.getElementById('fGroup').addEventListener('change',function(){
   const g=this.value;
-  if(g){
-    const subs=[...new Set(allData.filter(r=>r['Supplier Group']===g).map(r=>r['Film Manufacturer']).filter(Boolean))];
-    populateSel('fMfr',subs);
-  }else{
-    const u=[...new Set(allData.map(r=>r['Film Manufacturer']).filter(Boolean))];
-    populateSel('fMfr',u);
-  }
-  applyFilters();
+  const subs=g?[...new Set(allData.filter(r=>r['Supplier Group']===g).map(r=>r['Film Manufacturer']).filter(Boolean))]
+             :[...new Set(allData.map(r=>r['Film Manufacturer']).filter(Boolean))];
+  populateSel('fMfr',subs);applyFilters();
 });
-function getF(){return{from:document.getElementById('fFrom').value,to:document.getElementById('fTo').value,machine:document.getElementById('fMachine').value,group:document.getElementById('fGroup').value,mfr:document.getElementById('fMfr').value,user:document.getElementById('fUser').value,po:document.getElementById('fPO').value}}
-function clearFilters(){['fFrom','fTo','fMachine','fGroup','fMfr','fUser','fPO'].forEach(id=>document.getElementById(id).value='');applyFilters()}
+function getF(){
+  return{
+    yMin:+document.getElementById('yearMin').value,
+    yMax:+document.getElementById('yearMax').value,
+    from:document.getElementById('fFrom').value,
+    to:document.getElementById('fTo').value,
+    machine:document.getElementById('fMachine').value,
+    group:document.getElementById('fGroup').value,
+    mfr:document.getElementById('fMfr').value,
+    user:document.getElementById('fUser').value,
+    po:document.getElementById('fPO').value
+  }
+}
+function clearFilters(){
+  const mn=document.getElementById('yearMin'),mx=document.getElementById('yearMax');
+  mn.value=mn.min;mx.value=mx.max;updateSliderFill();
+  ['fFrom','fTo','fMachine','fGroup','fMfr','fUser','fPO'].forEach(id=>document.getElementById(id).value='');
+  applyFilters();
+}
 function applyFilters(){
   const f=getF();
   fData=allData.filter(r=>{
+    const yr=r.DATE?+r.DATE.slice(0,4):0;
+    if(yr&&(yr<f.yMin||yr>f.yMax))return false;
     if(f.from&&r.DATE<f.from)return false;
     if(f.to&&r.DATE>f.to)return false;
     if(f.machine&&r.Machine!==f.machine)return false;
@@ -300,19 +410,21 @@ function applyFilters(){
     if(f.po&&r.PO!==f.po)return false;
     return true;
   });
+  allTests=groupTests(fData);
   pg=1;renderAll();
 }
 ['fFrom','fTo','fMachine','fMfr','fUser','fPO'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
 
-// Group rows into one test object per DATE+Lot+Machine
+/* Group rows into one test per DATE+Lot+Machine */
 function groupTests(data){
   const map={};
   data.forEach(r=>{
     const k=`${r.DATE}||${r['Lot Code']}||${r.Machine}`;
-    if(!map[k])map[k]={date:r.DATE,lot:r['Lot Code'],po:r.PO,mfr:r['Film Manufacturer'],group:r['Supplier Group'],machine:r.Machine,tester:r['Tested By'],roll1:r['Master Roll 1'],roll2:r['Master Roll 2'],lanes:[],readings:[]};
-    const laneData={lane:r.Lane,p:[]};
-    for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P){laneData.p.push(v);map[k].readings.push(v)}}
-    map[k].lanes.push(laneData);
+    if(!map[k])map[k]={date:r.DATE,lot:r['Lot Code'],po:r.PO,mfr:r['Film Manufacturer'],group:r['Supplier Group'],machine:r.Machine,tester:r['Tested By'],roll1:r['Master Roll 1'],roll2:r['Master Roll 2'],lanes:[],readings:[],comments:r.Comments||''};
+    const ld={lane:r.Lane,p:[]};
+    for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P){ld.p.push(v);map[k].readings.push(v)}}
+    map[k].lanes.push(ld);
+    if(!map[k].comments&&r.Comments)map[k].comments=r.Comments;
   });
   return Object.values(map).map(t=>{
     const r=t.readings;
@@ -320,13 +432,12 @@ function groupTests(data){
   }).sort((a,b)=>b.date.localeCompare(a.date));
 }
 
+/* KPIs */
 function renderKPIs(){
-  const tests=groupTests(fData);
-  const avgs=tests.map(t=>+t.avg).filter(v=>!isNaN(v));
-  const mins=tests.map(t=>+t.min).filter(v=>!isNaN(v));
-  const maxs=tests.map(t=>+t.max).filter(v=>!isNaN(v));
-  document.getElementById('kTotal').textContent=fData.length.toLocaleString();
-  document.getElementById('kIncoming').textContent=tests.length.toLocaleString();
+  const avgs=allTests.map(t=>+t.avg).filter(v=>!isNaN(v));
+  const mins=allTests.map(t=>+t.min).filter(v=>!isNaN(v));
+  const maxs=allTests.map(t=>+t.max).filter(v=>!isNaN(v));
+  document.getElementById('kIncoming').textContent=allTests.length.toLocaleString();
   document.getElementById('kAvg').textContent=avgs.length?(avgs.reduce((a,b)=>a+b)/avgs.length).toFixed(0):'—';
   document.getElementById('kMin').textContent=mins.length?Math.min(...mins):'—';
   document.getElementById('kMax').textContent=maxs.length?Math.max(...maxs):'—';
@@ -334,106 +445,93 @@ function renderKPIs(){
   document.getElementById('kLots').textContent=new Set(fData.map(r=>r['Lot Code']).filter(Boolean)).size;
 }
 
+/* Helpers */
 function pClass(v){const n=+v;if(isNaN(n))return '';return n<800?'p-lo':n<1000?'p-mid':'p-hi'}
-function mBadge(m){if(!m)return '—';const c=m.includes('1')||m==='B1'||m==='A1'?'b-blue':'b-green';return `<span class="badge ${c}">${m}</span>`}
+function mBadge(m){if(!m)return '—';const c=m.includes('1')||m==='B1'||m==='A1'?'b-blue':'b-green';return`<span class="badge ${c}">${m}</span>`}
 
+/* Snapshot */
 function renderSnapshot(){
-  const tests=groupTests(allData).slice(0,10);
-  document.getElementById('snapBadge').textContent=tests.length;
-  document.getElementById('snapBody').innerHTML=tests.length===0
-    ?`<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">No test data</td></tr>`
-    :tests.map((t,i)=>`<tr class="clickrow" onclick="openPopup(${i},'snap')" title="Click to view full test sheet">
+  const top10=groupTests(allData).slice(0,10);
+  document.getElementById('snapBadge').textContent=top10.length;
+  document.getElementById('snapBody').innerHTML=top10.map((t,i)=>`<tr class="clickrow" onclick="openTest(${i},'snap')">
+    <td>${t.date}</td>
+    <td><strong>${t.po||'—'}</strong><span style="color:var(--muted);font-size:11px"> / ${t.lot||'—'}</span></td>
+    <td>${t.group||t.mfr||'—'}</td>
+    <td>${t.group&&t.group!==t.mfr?`<span class="badge b-sub">${t.mfr}</span>`:''}</td>
+    <td>${mBadge(t.machine)}</td>
+    <td>${t.tester||'—'}</td>
+    <td style="color:var(--muted)">${t.count}</td>
+    <td class="${pClass(t.avg)}">${t.avg}</td>
+    <td>${t.min}</td><td>${t.max}</td>
+    <td class="td-comments" title="${t.comments||''}">${t.comments||'—'}</td>
+  </tr>`).join('');
+  window._snapTests=top10;
+}
+
+/* Charts */
+const COLORS=['#4f7cff','#00d4aa','#f59e0b','#ef4444','#a78bfa','#34d399','#fb923c','#60a5fa'];
+function cOpts(){const g=dark?'#2e3248':'#d1d5e0',tc=dark?'#6b7280':'#8896a5',lc=dark?'#e2e8f0':'#1a1d27';return{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:lc,font:{size:10}}}},scales:{x:{ticks:{color:tc,font:{size:9}},grid:{color:g}},y:{ticks:{color:tc,font:{size:9}},grid:{color:g}}}}}
+function mkChart(id,type,data,opts={}){if(charts[id])charts[id].destroy();charts[id]=new Chart(document.getElementById(id),{type,data,options:{...cOpts(),...opts}})}
+function nPDF(x,mu,s){return(1/(s*Math.sqrt(2*Math.PI)))*Math.exp(-.5*((x-mu)/s)**2)}
+
+function renderCharts(){
+  /* Timeline */
+  const tl=[...allTests].reverse();
+  mkChart('cTimeline','line',{labels:tl.map(t=>t.date),datasets:[{label:'Avg',data:tl.map(t=>t.avg),borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,.08)',tension:.3,pointRadius:2,fill:true}]},{plugins:{legend:{display:false}}});
+
+  /* Bell: top 4 by test count in data year range */
+  const curYear=new Date().getFullYear();
+  const yearData=fData.filter(r=>r.DATE&&r.DATE.startsWith(String(curYear)));
+  const yearTests=groupTests(yearData.length>20?yearData:fData);
+  const gc={};yearTests.forEach(t=>{const g=t.group||t.mfr;if(g)gc[g]=(gc[g]||0)+1});
+  const top4=Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,4).map(e=>e[0]);
+  document.getElementById('bellTitle').textContent=`Pressure Distribution — Top 4 Suppliers (Bell Curve)`;
+  const mG={};
+  fData.forEach(r=>{const g=r['Supplier Group']||r['Film Manufacturer'];if(!top4.includes(g))return;for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P){if(!mG[g])mG[g]=[];mG[g].push(v)}}});
+  const allR=Object.values(mG).flat();
+  if(allR.length){
+    const lo=Math.max(0,Math.min(...allR)-150),hi=Math.min(MAX_P,Math.max(...allR)+150),steps=100,step=(hi-lo)/steps;
+    const xs=Array.from({length:steps+1},(_,i)=>(lo+i*step).toFixed(0));
+    const bds=Object.entries(mG).map(([name,vals],i)=>{
+      const n=new Set(yearTests.filter(t=>t.group===name||t.mfr===name).map(t=>`${t.date}|${t.lot}`)).size;
+      const mu=vals.reduce((a,b)=>a+b)/vals.length;
+      const sigma=Math.sqrt(vals.map(v=>(v-mu)**2).reduce((a,b)=>a+b)/vals.length)||1;
+      return{label:`${name} (n=${n}, μ=${mu.toFixed(0)})`,data:xs.map(x=>nPDF(+x,mu,sigma).toFixed(6)),borderColor:COLORS[i%COLORS.length],backgroundColor:'transparent',tension:.4,pointRadius:0,borderWidth:2};
+    });
+    mkChart('cBell','line',{labels:xs,datasets:bds},{scales:{x:{title:{display:true,text:'Pressure (psi)',color:'#6b7280'},ticks:{maxTicksLimit:8,color:'#6b7280',font:{size:9}},grid:{color:dark?'#2e3248':'#d1d5e0'}},y:{display:false}}});
+  }
+
+  /* Supplier avg + n */
+  const sg={};allTests.forEach(t=>{const g=t.group||t.mfr;if(!g)return;const v=+t.avg;if(!isNaN(v)){if(!sg[g])sg[g]={avgs:[],n:0};sg[g].avgs.push(v);sg[g].n++}});
+  const sl=Object.keys(sg).sort(),sv=sl.map(g=>(sg[g].avgs.reduce((a,b)=>a+b)/sg[g].avgs.length).toFixed(1)),sn=sl.map(g=>sg[g].n);
+  mkChart('cMfr','bar',{labels:sl.map((g,i)=>`${g} (n=${sn[i]})`),datasets:[{label:'Avg psi',data:sv,backgroundColor:COLORS.slice(0,sl.length),borderRadius:4}]},{plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:9},color:'#6b7280'},grid:{color:dark?'#2e3248':'#d1d5e0'}},x:{ticks:{font:{size:9},color:'#6b7280'},grid:{color:dark?'#2e3248':'#d1d5e0'}}}});
+}
+
+/* All Records Table (test-level) */
+function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=-1};pg=1;renderTable()}
+function renderTable(){
+  const s=[...allTests].sort((a,b)=>{
+    const av=a[sortCol]??'',bv=b[sortCol]??'';
+    const an=+av,bn=+bv;
+    if(!isNaN(an)&&!isNaN(bn))return(an-bn)*sortDir;
+    return String(av)<String(bv)?-sortDir:String(av)>String(bv)?sortDir:0;
+  });
+  const total=Math.ceil(s.length/PAGE),slice=s.slice((pg-1)*PAGE,pg*PAGE);
+  document.getElementById('tblCount').textContent=`${s.length.toLocaleString()} tests`;
+  document.getElementById('tblBody').innerHTML=slice.map((t,i)=>{
+    const gi=s.indexOf(t);
+    return`<tr class="clickrow" onclick="openTest(${gi},'all')" title="Click to view full test sheet">
       <td>${t.date}</td>
-      <td><strong>${t.po||'—'}</strong> <span style="color:var(--muted);font-size:11px">/ ${t.lot||'—'}</span></td>
-      <td>${t.group||t.mfr||'—'}</td>
-      <td>${t.group&&t.group!==t.mfr?`<span class="badge b-sub">${t.mfr}</span>`:''}</td>
+      <td><strong>${t.po||'—'}</strong></td>
+      <td>${t.lot||'—'}</td>
+      <td>${t.group||''}</td>
+      <td>${t.group&&t.group!==t.mfr?`<span class="badge b-sub">${t.mfr}</span>`:t.mfr||''}</td>
       <td>${mBadge(t.machine)}</td>
       <td>${t.tester||'—'}</td>
       <td style="color:var(--muted)">${t.count}</td>
       <td class="${pClass(t.avg)}">${t.avg}</td>
-      <td>${t.min}</td>
-      <td>${t.max}</td>
-    </tr>`).join('');
-  window._snapTests=tests;
-}
-
-const COLORS=['#4f7cff','#00d4aa','#f59e0b','#ef4444','#a78bfa','#34d399','#fb923c','#60a5fa'];
-function cDef(){const g=dark?'#2e3248':'#d1d5e0',tc=dark?'#6b7280':'#8896a5',lc=dark?'#e2e8f0':'#1a1d27';return{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:lc,font:{size:11}}}},scales:{x:{ticks:{color:tc,font:{size:10}},grid:{color:g}},y:{ticks:{color:tc,font:{size:10}},grid:{color:g}}}}}
-function mkChart(id,type,data,opts={}){if(charts[id])charts[id].destroy();charts[id]=new Chart(document.getElementById(id),{type,data,options:{...cDef(),...opts}})}
-function nPDF(x,mu,s){return(1/(s*Math.sqrt(2*Math.PI)))*Math.exp(-.5*((x-mu)/s)**2)}
-
-function renderCharts(){
-  const tests=groupTests(fData);
-
-  // Timeline
-  const tl=[...tests].reverse();
-  mkChart('cTimeline','line',{labels:tl.map(t=>t.date),datasets:[{label:'Avg Pressure',data:tl.map(t=>t.avg),borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,.08)',tension:.3,pointRadius:2,fill:true}]},{plugins:{legend:{display:false}}});
-
-  // Bell curve: top 4 suppliers by # tests in current year
-  const curYear=new Date().getFullYear();
-  const yearData=fData.filter(r=>r.DATE&&r.DATE.startsWith(String(curYear)));
-  const yearTests=groupTests(yearData.length>0?yearData:fData);
-  const groupCount={};
-  yearTests.forEach(t=>{const g=t.group||t.mfr;if(g)groupCount[g]=(groupCount[g]||0)+1});
-  const top4=Object.entries(groupCount).sort((a,b)=>b[1]-a[1]).slice(0,4).map(e=>e[0]);
-  document.getElementById('bellTitle').textContent=`Pressure Distribution — Top 4 Suppliers (Bell Curve) · ${curYear}`;
-
-  const mGroups={};
-  fData.forEach(r=>{
-    const g=r['Supplier Group']||r['Film Manufacturer'];
-    if(!top4.includes(g))return;
-    for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P){if(!mGroups[g])mGroups[g]=[];mGroups[g].push(v)}}
-  });
-  const allR=Object.values(mGroups).flat();
-  if(allR.length){
-    const lo=Math.max(0,Math.min(...allR)-150),hi=Math.min(MAX_P,Math.max(...allR)+150),steps=100,step=(hi-lo)/steps;
-    const xs=Array.from({length:steps+1},(_,i)=>(lo+i*step).toFixed(0));
-    const bds=Object.entries(mGroups).map(([name,vals],i)=>{
-      const n=new Set(yearTests.filter(t=>t.group===name||t.mfr===name).map(t=>`${t.date}|${t.lot}`)).size;
-      const mu=vals.reduce((a,b)=>a+b)/vals.length;
-      const sigma=Math.sqrt(vals.map(v=>(v-mu)**2).reduce((a,b)=>a+b)/vals.length)||1;
-      return{label:`${name} (n=${n}, μ=${mu.toFixed(0)}, σ=${sigma.toFixed(0)})`,data:xs.map(x=>nPDF(+x,mu,sigma).toFixed(6)),borderColor:COLORS[i%COLORS.length],backgroundColor:'transparent',tension:.4,pointRadius:0,borderWidth:2.5};
-    });
-    mkChart('cBell','line',{labels:xs,datasets:bds},{scales:{x:{title:{display:true,text:'Pressure (psi)',color:'#6b7280'},ticks:{maxTicksLimit:10,color:'#6b7280',font:{size:10}},grid:{color:dark?'#2e3248':'#d1d5e0'}},y:{title:{display:true,text:'Density',color:'#6b7280'},ticks:{color:'#6b7280',font:{size:10}},grid:{color:dark?'#2e3248':'#d1d5e0'}}}});
-  }
-
-  // Supplier avg + n count combined chart
-  const supGroups={};
-  tests.forEach(t=>{const g=t.group||t.mfr;if(!g)return;const v=+t.avg;if(!isNaN(v)){if(!supGroups[g])supGroups[g]={avgs:[],n:0};supGroups[g].avgs.push(v);supGroups[g].n++}});
-  const supLabels=Object.keys(supGroups).sort();
-  const supAvgs=supLabels.map(g=>(supGroups[g].avgs.reduce((a,b)=>a+b)/supGroups[g].avgs.length).toFixed(1));
-  const supN=supLabels.map(g=>supGroups[g].n);
-  mkChart('cMfr','bar',{
-    labels:supLabels.map((g,i)=>`${g} (n=${supN[i]})`),
-    datasets:[{label:'Avg Pressure (psi)',data:supAvgs,backgroundColor:COLORS.slice(0,supLabels.length),borderRadius:5,yAxisID:'y'}]
-  },{plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#6b7280',font:{size:10}},grid:{color:dark?'#2e3248':'#d1d5e0'},title:{display:true,text:'Avg Pressure (psi)',color:'#6b7280'}}}});
-}
-
-// Table
-function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=-1};pg=1;renderTable()}
-function renderTable(){
-  const s=[...fData].sort((a,b)=>{let av=a[sortCol]||'',bv=b[sortCol]||'';const an=+av,bn=+bv;if(!isNaN(an)&&!isNaN(bn))return(an-bn)*sortDir;return av<bv?-sortDir:av>bv?sortDir:0});
-  const start=(pg-1)*PAGE,slice=s.slice(start,start+PAGE),total=Math.ceil(s.length/PAGE);
-  document.getElementById('tblCount').textContent=`${s.length.toLocaleString()} records`;
-  // Build test lookup for row clicks
-  const allTests=groupTests(fData);
-  window._allTests=allTests;
-  const testKey=t=>`${t.date}||${t.lot}||${t.machine}`;
-  const testIdx={};allTests.forEach((t,i)=>testIdx[testKey(t)]=i);
-  document.getElementById('tblBody').innerHTML=slice.map(r=>{
-    const pa=+r.PressureAverage;
-    const ti=testIdx[`${r.DATE}||${r['Lot Code']}||${r.Machine}`];
-    return`<tr class="clickrow" onclick="openPopup(${ti??-1},'all')" title="Click to view full test sheet">
-      <td>${r.DATE||''}</td>
-      <td><strong>${r.PO||'—'}</strong> <span style="color:var(--muted);font-size:11px">/ ${r['Lot Code']||'—'}</span></td>
-      <td>${r['Supplier Group']||''}</td>
-      <td>${r['Supplier Group']&&r['Supplier Group']!==r['Film Manufacturer']?`<span class="badge b-sub">${r['Film Manufacturer']}</span>`:r['Film Manufacturer']||''}</td>
-      <td>${mBadge(r.Machine)}</td>
-      <td>${r.Lane||''}</td>
-      <td>${r['Tested By']||''}</td>
-      <td class="${pClass(pa)}">${isNaN(pa)?'':pa.toFixed(1)}</td>
-      <td>${r.PressureMIN||''}</td>
-      <td>${r.PressureMAX||''}</td>
+      <td>${t.min}</td><td>${t.max}</td>
+      <td class="td-comments" title="${t.comments||''}">${t.comments||'—'}</td>
     </tr>`;
   }).join('');
   const pag=document.getElementById('pages');
@@ -447,51 +545,112 @@ function renderTable(){
   pag.innerHTML=h;
 }
 function goPg(p){pg=p;renderTable();window.scrollTo(0,0)}
-function renderAll(){renderKPIs();renderSnapshot();renderCharts();renderTable()}
 
-// ── Popup ────────────────────────────────────────────────────────────────────
-function openPopup(idx,src){
-  const tests=src==='snap'?window._snapTests:window._allTests;
+/* Pressure cell color: 800+ = white, 300- = red, gradient in between */
+function pressureBg(v){
+  const n=+v;if(isNaN(n)||n>=800)return '';
+  if(n<=300)return '#ef4444';
+  const t=(n-300)/(800-300); // 0=red, 1=yellow
+  const h=Math.round(t*48); // hue 0(red)→48(yellow)
+  const s=90,l=Math.round(55+t*12);
+  return`hsl(${h},${s}%,${l}%)`;
+}
+function pressureTextColor(v){const n=+v;if(isNaN(n)||n>=800)return '';return n<500?'#fff':'#111'}
+
+/* Popup */
+function openTest(idx,src){
+  let tests;
+  if(src==='snap')tests=window._snapTests;
+  else{const s=[...allTests].sort((a,b)=>{const av=a[sortCol]??'',bv=b[sortCol]??'';const an=+av,bn=+bv;if(!isNaN(an)&&!isNaN(bn))return(an-bn)*sortDir;return String(av)<String(bv)?-sortDir:String(av)>String(bv)?sortDir:0});tests=s;}
   if(!tests||idx<0||idx>=tests.length)return;
   const t=tests[idx];
+  activeTest=t;
 
-  // Meta header
   document.getElementById('popMeta').innerHTML=`
-    <div class="popup-meta-row"><label>Film Manufacturer:</label><span>${t.mfr||'—'}${t.group&&t.group!==t.mfr?' ('+t.group+')':''}</span></div>
-    <div class="popup-meta-row"><label>Tested By:</label><span>${t.tester||'—'}</span></div>
-    <div class="popup-meta-row"><label>Lot Code #:</label><span>${t.lot||'—'}</span></div>
-    <div class="popup-meta-row"><label>Master Roll #:</label><span>${[t.roll1,t.roll2].filter(Boolean).join(' / ')||'—'}</span></div>
-    <div class="popup-meta-row"><label>Machine #:</label><span>${t.machine||'—'}</span></div>
-    <div class="popup-meta-row"><label>Date of Test:</label><span>${t.date||'—'}</span></div>`;
+    <div class="pmr"><label>Film Manufacturer:</label><span>${t.mfr||'—'}${t.group&&t.group!==t.mfr?' <em>('+t.group+')</em>':''}</span></div>
+    <div class="pmr"><label>Tested By:</label><span>${t.tester||'—'}</span></div>
+    <div class="pmr"><label>Lot Code #:</label><span>${t.lot||'—'}</span></div>
+    <div class="pmr"><label>Master Roll #:</label><span>${[t.roll1,t.roll2].filter(v=>v&&v!=='nan').join(' / ')||'—'}</span></div>
+    <div class="pmr"><label>Machine #:</label><span>${t.machine||'—'}</span></div>
+    <div class="pmr"><label>Date of Test:</label><span>${t.date||'—'}</span></div>`;
 
-  // Lane pressure table
   const lanes=[...t.lanes].sort((a,b)=>+a.lane-+b.lane);
   document.getElementById('popRows').innerHTML=lanes.map(l=>{
     const p=l.p;
-    const laneAvg=p.length?(p.reduce((a,b)=>a+b)/p.length).toFixed(1):'—';
-    const cells=[1,2,3,4,5,6].map(i=>`<td style="color:${p[i-1]?'#111':'#bbb'}">${p[i-1]||''}</td>`).join('');
-    return`<tr><td>Lane ${l.lane}</td>${cells}<td style="font-weight:bold">${laneAvg}</td></tr>`;
+    const lAvg=p.length?(p.reduce((a,b)=>a+b)/p.length).toFixed(1):'—';
+    const cells=[1,2,3,4,5,6].map(i=>{
+      const v=p[i-1];
+      if(v===undefined)return`<td style="color:#bbb"></td>`;
+      const bg=pressureBg(v),tc=pressureTextColor(v);
+      const style=bg?`background:${bg};color:${tc};`:'';
+      const cls=bg?'p-flag':'';
+      return`<td class="${cls}" style="${style}">${v}</td>`;
+    }).join('');
+    return`<tr><td class="lane-name">Lane ${l.lane}</td>${cells}<td class="lane-avg">${lAvg}</td></tr>`;
   }).join('');
 
-  // Footer
-  const avgClass=+t.avg>=1000?'popup-avg-hi':+t.avg>=800?'popup-avg-mid':'popup-avg-lo';
+  const avgClass=+t.avg>=1000?'avg-hi':+t.avg>=800?'avg-mid':'avg-lo';
   document.getElementById('popFooter').innerHTML=`
-    <div class="popup-footer-row"><label>Average: </label> <span class="${avgClass}" style="padding:2px 8px;border-radius:4px;font-weight:bold">${t.avg} psi</span></div>
-    <div class="popup-footer-row"><label>PO #:</label> ${t.po||'—'}</div>
-    <div class="popup-footer-row"><label>Min Pressure:</label> ${t.min} psi</div>
-    <div class="popup-footer-row"><label>Max Pressure:</label> ${t.max} psi</div>`;
+    <div class="pfr"><label>Average: </label> <span class="${avgClass}">${t.avg} psi</span></div>
+    <div class="pfr"><label>PO #:</label> ${t.po||'—'}</div>
+    <div class="pfr"><label>Min Pressure:</label> ${t.min} psi</div>
+    <div class="pfr"><label>Max Pressure:</label> ${t.max} psi</div>`;
 
-  document.getElementById('popComments').textContent='—';
+  document.getElementById('popComments').textContent=t.comments||'—';
   document.getElementById('overlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
-function closePopup(e){
-  if(e&&e.target!==document.getElementById('overlay'))return;
-  document.getElementById('overlay').classList.remove('open');
-  document.body.style.overflow='';
-}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closePopup(null)});
 
+function closePopup(){document.getElementById('overlay').classList.remove('open');document.body.style.overflow='';activeTest=null}
+function closePopupClick(e){if(e.target===document.getElementById('overlay'))closePopup()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePopup()});
+
+/* Download test as HTML */
+function downloadTest(){
+  if(!activeTest)return;
+  const t=activeTest;
+  const lanes=[...t.lanes].sort((a,b)=>+a.lane-+b.lane);
+  const rows=lanes.map(l=>{
+    const p=l.p;
+    const lAvg=p.length?(p.reduce((a,b)=>a+b)/p.length).toFixed(1):'—';
+    const cells=[1,2,3,4,5,6].map(i=>{
+      const v=p[i-1];if(v===undefined)return`<td></td>`;
+      const bg=pressureBg(v),tc=pressureTextColor(v);
+      return`<td style="border:1px solid #ccc;padding:5px 8px;text-align:center;${bg?`background:${bg};color:${tc};font-weight:700`:''}">${v}</td>`;
+    }).join('');
+    return`<tr><td style="border:1px solid #ccc;padding:5px 8px;font-weight:500">Lane ${l.lane}</td>${cells}<td style="border:1px solid #ccc;padding:5px 8px;text-align:center;font-weight:bold;background:#f0f0f0">${lAvg}</td></tr>`;
+  }).join('');
+  const avgClass=+t.avg>=1000?'background:#d4edda;color:#155724':+t.avg>=800?'background:#fff3cd;color:#856404':'background:#f8d7da;color:#721c24';
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Burst Test - ${t.lot||t.po} - ${t.date}</title>
+  <style>body{font-family:'Times New Roman',serif;font-size:13px;margin:32px;color:#111}h2{text-align:center;font-size:15px;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}table{width:100%;border-collapse:collapse}th{background:#e8e8e8;border:1px solid #aaa;padding:5px 8px;text-align:center;font-weight:bold}td{vertical-align:middle}.meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;margin-bottom:14px}.mr{border-bottom:1px solid #ddd;padding:3px 0;display:flex;gap:8px}.mr label{font-weight:bold;min-width:110px;font-size:12px}.footer{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;margin:12px 0}.fr{border-bottom:1px solid #ddd;padding-bottom:4px}.fr label{font-weight:bold}.avg-tag{${avgClass};padding:2px 8px;border-radius:4px;font-weight:bold;display:inline-block}.comments{border:1px solid #ccc;padding:8px;min-height:40px;font-size:12px;border-radius:2px;margin-top:8px}@media print{body{margin:16px}}</style>
+  </head><body>
+  <h2>Film Compression Test</h2>
+  <div class="meta">
+    <div class="mr"><label>Film Manufacturer:</label><span>${t.mfr||'—'}</span></div>
+    <div class="mr"><label>Tested By:</label><span>${t.tester||'—'}</span></div>
+    <div class="mr"><label>Lot Code #:</label><span>${t.lot||'—'}</span></div>
+    <div class="mr"><label>Master Roll #:</label><span>${[t.roll1,t.roll2].filter(v=>v&&v!=='nan').join(' / ')||'—'}</span></div>
+    <div class="mr"><label>Machine #:</label><span>${t.machine||'—'}</span></div>
+    <div class="mr"><label>Date of Test:</label><span>${t.date||'—'}</span></div>
+  </div>
+  <table><thead><tr><th>Lane</th><th>Press #1</th><th>Press #2</th><th>Press #3</th><th>Press #4</th><th>Press #5</th><th>Press #6</th><th>Lane Avg</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div class="footer">
+    <div class="fr"><label>Average:</label> <span class="avg-tag">${t.avg} psi</span></div>
+    <div class="fr"><label>PO #:</label> ${t.po||'—'}</div>
+    <div class="fr"><label>Min Pressure:</label> ${t.min} psi</div>
+    <div class="fr"><label>Max Pressure:</label> ${t.max} psi</div>
+  </div>
+  <strong>Comments</strong>
+  <div class="comments">${t.comments||'—'}</div>
+  </body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`burst-test_${(t.lot||t.po||'unknown').replace(/[^a-z0-9]/gi,'_')}_${t.date}.html`;
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+function renderAll(){renderKPIs();renderSnapshot();renderCharts();renderTable()}
 init();
 </script>
 </body>
