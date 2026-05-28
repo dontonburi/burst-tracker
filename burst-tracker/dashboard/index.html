@@ -224,10 +224,6 @@
     <label>PO #</label>
     <select id="filterPO"><option value="">All POs</option></select>
   </div>
-  <div class="filter-group">
-    <label>Lane</label>
-    <select id="filterLane"><option value="">All Lanes</option></select>
-  </div>
   <button class="btn-clear" onclick="clearFilters()">✕ Clear</button>
 </div>
 
@@ -325,7 +321,7 @@
 </div>
 
 <script>
-const DATA_URL = '../data/database.csv';
+const DATA_URL = 'data/database.csv';
 const PAGE_SIZE = 50;
 
 let allData = [];
@@ -416,7 +412,6 @@ function setupFilters() {
   populateSelect('filterMfr', uniq('Film Manufacturer'));
   populateSelect('filterUser', uniq('Tested By'));
   populateSelect('filterPO', uniq('PO'));
-  populateSelect('filterLane', uniq('Lane'));
 }
 
 function getFilters() {
@@ -427,12 +422,11 @@ function getFilters() {
     mfr: document.getElementById('filterMfr').value,
     user: document.getElementById('filterUser').value,
     po: document.getElementById('filterPO').value,
-    lane: document.getElementById('filterLane').value,
   };
 }
 
 function clearFilters() {
-  ['filterDateFrom','filterDateTo','filterMachine','filterMfr','filterUser','filterPO','filterLane']
+  ['filterDateFrom','filterDateTo','filterMachine','filterMfr','filterUser','filterPO']
     .forEach(id => document.getElementById(id).value = '');
   applyFilters();
 }
@@ -446,14 +440,13 @@ function applyFilters() {
     if (f.mfr && r['Film Manufacturer'] !== f.mfr) return false;
     if (f.user && r['Tested By'] !== f.user) return false;
     if (f.po && r.PO !== f.po) return false;
-    if (f.lane && r.Lane !== f.lane) return false;
     return true;
   });
   page = 1;
   renderAll();
 }
 
-['filterDateFrom','filterDateTo','filterMachine','filterMfr','filterUser','filterPO','filterLane']
+['filterDateFrom','filterDateTo','filterMachine','filterMfr','filterUser','filterPO']
   .forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
 
 // ─── KPIs ──────────────────────────────────────────────────────────────────
