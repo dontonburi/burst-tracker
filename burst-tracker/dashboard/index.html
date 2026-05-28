@@ -3,199 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Burst Pressure Tracker</title>
+  <title>BurstTrack – Alamance Foods</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #222535;
-      --border: #2e3248;
-      --accent: #4f7cff;
-      --accent2: #00d4aa;
-      --warn: #f59e0b;
-      --danger: #ef4444;
-      --text: #e2e8f0;
-      --muted: #6b7280;
-      --font: 'Segoe UI', system-ui, sans-serif;
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#222535; --border:#2e3248;
+      --accent:#4f7cff; --accent2:#00d4aa; --warn:#f59e0b; --danger:#ef4444;
+      --text:#e2e8f0; --muted:#6b7280; --font:'Segoe UI',system-ui,sans-serif;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
+    .light-mode {
+      --bg:#f0f2f8; --surface:#ffffff; --surface2:#e8eaf2; --border:#d1d5e0;
+      --text:#1a1d27; --muted:#6b7280;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh;transition:background .3s,color .3s}
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:16px}
+    .header-left{display:flex;align-items:center;gap:16px}
+    .company-logo{height:48px;width:auto;object-fit:contain}
+    .divider{width:1px;height:40px;background:var(--border)}
+    .logo{font-size:22px;font-weight:800;letter-spacing:-0.5px;white-space:nowrap}
+    .logo span{color:var(--accent)}
+    .header-right{display:flex;align-items:center;gap:12px}
+    .meta{font-size:12px;color:var(--muted)}
+    .theme-toggle{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;transition:all .2s}
+    .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-    .logo span { color: var(--accent); }
-    .meta { font-size: 12px; color: var(--muted); }
+    .upload-bar{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+    .upload-bar label{background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+    .upload-bar label:hover{opacity:.85}
+    #fileInput{display:none}
+    .upload-hint{font-size:12px;color:var(--muted)}
+    #uploadStatus{font-size:12px;color:var(--accent2)}
 
-    .upload-bar {
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .upload-bar label {
-      background: var(--accent);
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: opacity 0.15s;
-    }
-    .upload-bar label:hover { opacity: 0.85; }
-    #fileInput { display: none; }
-    .upload-hint { font-size: 12px; color: var(--muted); }
-    #uploadStatus { font-size: 12px; color: var(--accent2); }
+    .filters{display:flex;flex-wrap:wrap;gap:12px;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);align-items:flex-end}
+    .filter-group{display:flex;flex-direction:column;gap:4px}
+    .filter-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    select,input[type=date]{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;outline:none;min-width:130px}
+    select:focus,input:focus{border-color:var(--accent)}
+    .btn-clear{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-top:18px}
+    .btn-clear:hover{border-color:var(--accent);color:var(--text)}
 
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 16px 24px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      align-items: flex-end;
-    }
-    .filter-group { display: flex; flex-direction: column; gap: 4px; }
-    .filter-group label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    select, input[type=date] {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 7px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      outline: none;
-      min-width: 130px;
-    }
-    select:focus, input:focus { border-color: var(--accent); }
-    .btn-clear {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 7px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      margin-top: 18px;
-    }
-    .btn-clear:hover { border-color: var(--accent); color: var(--text); }
+    .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:18px 24px}
+    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+    .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+    .kpi-value{font-size:24px;font-weight:700;line-height:1}
+    .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+    .kpi.good .kpi-value{color:var(--accent2)}
+    .kpi.warn .kpi-value{color:var(--warn)}
+    .kpi.info .kpi-value{color:var(--accent)}
 
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-      gap: 14px;
-      padding: 20px 24px;
-    }
-    .kpi {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .kpi-value { font-size: 26px; font-weight: 700; line-height: 1; }
-    .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-    .kpi.good .kpi-value { color: var(--accent2); }
-    .kpi.warn .kpi-value { color: var(--warn); }
-    .kpi.info .kpi-value { color: var(--accent); }
+    .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 24px 20px}
+    @media(max-width:900px){.charts-grid{grid-template-columns:1fr}}
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+    .chart-card.wide{grid-column:1/-1}
+    .chart-title{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text)}
+    .chart-wrap{position:relative;height:240px}
 
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      padding: 0 24px 20px;
-    }
-    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 18px;
-    }
-    .chart-card.wide { grid-column: 1 / -1; }
-    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
-    .chart-wrap { position: relative; height: 240px; }
+    .table-section{padding:0 24px 40px}
+    .section-title{font-size:16px;font-weight:700;margin-bottom:12px;padding-top:4px;color:var(--text)}
+    .table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .table-count{font-size:12px;color:var(--muted)}
+    .table-scroll{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:var(--surface2);padding:10px 12px;text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap}
+    thead th:hover{color:var(--text)}
+    tbody tr{border-bottom:1px solid var(--border)}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--surface2)}
+    tbody td{padding:9px 12px;white-space:nowrap}
+    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+    .badge-blue{background:rgba(79,124,255,.15);color:var(--accent)}
+    .badge-green{background:rgba(0,212,170,.15);color:var(--accent2)}
+    .badge-orange{background:rgba(245,158,11,.15);color:var(--warn)}
 
-    .table-section { padding: 0 24px 40px; }
-    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .table-title { font-size: 14px; font-weight: 600; }
-    .table-count { font-size: 12px; color: var(--muted); }
-    .table-scroll { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead th {
-      background: var(--surface2);
-      padding: 10px 12px;
-      text-align: left;
-      font-weight: 600;
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    thead th:hover { color: var(--text); }
-    tbody tr { border-bottom: 1px solid var(--border); }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--surface2); }
-    tbody td { padding: 9px 12px; white-space: nowrap; }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .badge-blue { background: rgba(79,124,255,0.15); color: var(--accent); }
-    .badge-green { background: rgba(0,212,170,0.15); color: var(--accent2); }
-    .badge-orange { background: rgba(245,158,11,0.15); color: var(--warn); }
+    .loading{display:flex;align-items:center;justify-content:center;height:300px;color:var(--muted);font-size:15px}
+    .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 300px;
-      color: var(--muted);
-      font-size: 15px;
-    }
-    .spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 10px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .p-low{color:var(--danger);font-weight:700}
+    .p-mid{color:var(--warn);font-weight:700}
+    .p-high{color:var(--accent2);font-weight:700}
 
-    .pressure-low  { color: var(--danger); }
-    .pressure-mid  { color: var(--warn); }
-    .pressure-high { color: var(--accent2); }
+    .pagination{display:flex;gap:6px;align-items:center;padding:14px 0 0;justify-content:center}
+    .pg-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:5px;cursor:pointer;font-size:13px}
+    .pg-btn:hover,.pg-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    .pg-info{font-size:12px;color:var(--muted);padding:0 8px}
 
-    .pagination { display: flex; gap: 6px; align-items: center; padding: 14px 0 0; justify-content: center; }
-    .pg-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; }
-    .pg-btn:hover, .pg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .pg-info { font-size: 12px; color: var(--muted); padding: 0 8px; }
+    .month-snapshot{padding:0 24px 20px}
+    .snapshot-badge{display:inline-block;background:rgba(79,124,255,.12);color:var(--accent);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-left:8px;vertical-align:middle}
   </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Burst<span>Track</span></div>
-  <div class="meta" id="lastUpdated">Loading...</div>
+  <div class="header-left">
+    <img id="companyLogo" class="company-logo" src="" alt="Alamance Foods" />
+    <div class="divider"></div>
+    <div class="logo">Burst<span>Track</span></div>
+  </div>
+  <div class="header-right">
+    <div class="meta" id="lastUpdated">Loading...</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙 Dark</button>
+  </div>
 </header>
 
 <div class="upload-bar">
   <label for="fileInput">📂 Upload New Excel</label>
   <input type="file" id="fileInput" accept=".xlsx,.csv" />
-  <span class="upload-hint">Upload a new .xlsx (DATABASE tab) or .csv to patch in fresh data</span>
+  <span class="upload-hint">Upload a new .csv to patch in fresh data</span>
   <span id="uploadStatus"></span>
 </div>
 
@@ -236,6 +152,11 @@
       <div class="kpi-value" id="kpiTotal">—</div>
       <div class="kpi-sub">filtered records</div>
     </div>
+    <div class="kpi info">
+      <div class="kpi-label">Incoming Checks</div>
+      <div class="kpi-value" id="kpiIncoming">—</div>
+      <div class="kpi-sub">unique PO receipts</div>
+    </div>
     <div class="kpi good">
       <div class="kpi-label">Avg Pressure</div>
       <div class="kpi-value" id="kpiAvgPressure">—</div>
@@ -261,10 +182,29 @@
       <div class="kpi-value" id="kpiLots">—</div>
       <div class="kpi-sub">unique lots</div>
     </div>
-    <div class="kpi info">
-      <div class="kpi-label">Date Range</div>
-      <div class="kpi-value" id="kpiDays" style="font-size:18px">—</div>
-      <div class="kpi-sub" id="kpiDateRange">—</div>
+  </div>
+
+  <!-- This Month Snapshot -->
+  <div class="month-snapshot">
+    <div class="table-header">
+      <div class="section-title" id="snapshotTitle">This Month's Tests <span class="snapshot-badge" id="snapshotCount">0</span></div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>PO # / Lot Code</th>
+            <th>Manufacturer</th>
+            <th>Machine</th>
+            <th>Tested By</th>
+            <th>Avg Pressure</th>
+            <th>Min</th>
+            <th>Max</th>
+          </tr>
+        </thead>
+        <tbody id="snapshotBody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -273,27 +213,24 @@
       <div class="chart-title">Avg Burst Pressure Over Time</div>
       <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
     </div>
+    <div class="chart-card wide">
+      <div class="chart-title">Burst Pressure Distribution by Supplier (Bell Curve)</div>
+      <div class="chart-wrap"><canvas id="chartBell"></canvas></div>
+    </div>
     <div class="chart-card">
-      <div class="chart-title">Pressure by Lane (Avg)</div>
-      <div class="chart-wrap"><canvas id="chartLane"></canvas></div>
+      <div class="chart-title">Avg Pressure by Manufacturer</div>
+      <div class="chart-wrap"><canvas id="chartMfr"></canvas></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">Tests by Machine</div>
       <div class="chart-wrap"><canvas id="chartMachine"></canvas></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-title">Pressure by Manufacturer (Avg)</div>
-      <div class="chart-wrap"><canvas id="chartMfr"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Pressure Distribution (Histogram)</div>
-      <div class="chart-wrap"><canvas id="chartHist"></canvas></div>
-    </div>
   </div>
 
+  <!-- Full Records Table -->
   <div class="table-section">
     <div class="table-header">
-      <div class="table-title">Records</div>
+      <div class="section-title">All Records</div>
       <div class="table-count" id="tableCount"></div>
     </div>
     <div class="table-scroll">
@@ -301,9 +238,8 @@
         <thead>
           <tr>
             <th onclick="sortTable('DATE')">Date ↕</th>
-            <th onclick="sortTable('Lot Code')">Lot Code ↕</th>
+            <th onclick="sortTable('PO')">PO / Lot Code ↕</th>
             <th onclick="sortTable('Film Manufacturer')">Manufacturer ↕</th>
-            <th onclick="sortTable('PO')">PO ↕</th>
             <th onclick="sortTable('Machine')">Machine ↕</th>
             <th onclick="sortTable('Lane')">Lane ↕</th>
             <th onclick="sortTable('Weight')">Weight ↕</th>
@@ -321,188 +257,219 @@
 </div>
 
 <script>
+// ─── Logo (embedded) ────────────────────────────────────────────────────────
+const LOGO_B64 = 'data:image/png;base64,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';
+document.getElementById('companyLogo').src = LOGO_B64;
+
+// ─── Theme ──────────────────────────────────────────────────────────────────
+let darkMode = true;
+function applyTheme(dark) {
+  darkMode = dark;
+  document.body.classList.toggle('light-mode', !dark);
+  const btn = document.getElementById('themeToggle');
+  btn.textContent = dark ? '☀️ Light' : '🌙 Dark';
+  if (window._charts) Object.values(window._charts).forEach(c => { try { c.update(); } catch(e){} });
+}
+function toggleTheme() { applyTheme(!darkMode); }
+// Auto-detect system preference
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+applyTheme(prefersDark);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => applyTheme(e.matches));
+
+// ─── Data ───────────────────────────────────────────────────────────────────
 const DATA_URL = 'data/database.csv';
 const PAGE_SIZE = 50;
+const MAX_PRESSURE = 2000;
 
-let allData = [];
-let filteredData = [];
-let sortCol = 'DATE';
-let sortDir = -1;
-let page = 1;
-let charts = {};
+let allData = [], filteredData = [];
+let sortCol = 'DATE', sortDir = -1, page = 1;
+window._charts = {};
 
-// ─── CSV Loading ───────────────────────────────────────────────────────────
-function loadCSV(url) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(url, {
-      download: true, header: true, skipEmptyLines: true,
-      complete: r => resolve(r.data),
-      error: reject
-    });
-  });
+function isValidRow(r) {
+  const avg = parseFloat(r.PressureAverage);
+  const min = parseFloat(r.PressureMIN);
+  const max = parseFloat(r.PressureMAX);
+  if (!isNaN(avg) && avg > MAX_PRESSURE) return false;
+  if (!isNaN(min) && !isNaN(max) && min === 0 && max === 0) return false;
+  return true;
 }
 
-function parseCSVText(text) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(text, {
-      header: true, skipEmptyLines: true,
-      complete: r => resolve(r.data),
-      error: reject
-    });
+function loadCSV(url) {
+  return new Promise((res, rej) => {
+    Papa.parse(url, { download:true, header:true, skipEmptyLines:true, complete: r => res(r.data), error: rej });
   });
 }
 
 async function init() {
   try {
-    allData = await loadCSV(DATA_URL);
-    document.getElementById('lastUpdated').textContent = `${allData.length.toLocaleString()} records loaded`;
+    const raw = await loadCSV(DATA_URL);
+    allData = raw.filter(isValidRow);
+    document.getElementById('lastUpdated').textContent = `${allData.length.toLocaleString()} records`;
     setupFilters();
     applyFilters();
     document.getElementById('loadingDiv').style.display = 'none';
     document.getElementById('dashboardContent').style.display = 'block';
-  } catch (e) {
+  } catch(e) {
     document.getElementById('loadingDiv').innerHTML = `<span style="color:var(--danger)">Failed to load database. Check that database.csv is accessible.</span>`;
-    console.error(e);
   }
 }
 
-// ─── File Upload (client-side merge) ───────────────────────────────────────
+// ─── File Upload ─────────────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const file = e.target.files[0]; if (!file) return;
   const status = document.getElementById('uploadStatus');
   status.textContent = 'Processing...';
   try {
-    if (file.name.endsWith('.csv')) {
-      const text = await file.text();
-      const newRows = await parseCSVText(text);
-      mergeData(newRows);
-      status.textContent = `✓ Merged ${newRows.length} rows from CSV`;
-    } else {
-      status.textContent = '⚠ For .xlsx files, run scripts/ingest.py locally, then push to GitHub.';
-    }
-  } catch (err) {
-    status.textContent = '✗ Error: ' + err.message;
-  }
+    const text = await file.text();
+    const rows = await new Promise((res, rej) => Papa.parse(text, { header:true, skipEmptyLines:true, complete: r=>res(r.data), error:rej }));
+    const clean = rows.filter(isValidRow);
+    const keyFn = r => `${r.DATE}|${r['Lot Code']}|${r.Machine}|${r.Lane}|${r.Weight}`;
+    const existing = new Set(allData.map(keyFn));
+    const added = clean.filter(r => !existing.has(keyFn(r)));
+    allData = [...allData, ...added];
+    status.textContent = `✓ Merged ${added.length} new rows`;
+    setupFilters(); applyFilters();
+  } catch(err) { status.textContent = '✗ ' + err.message; }
   e.target.value = '';
 });
 
-function mergeData(newRows) {
-  const keyFn = r => `${r.DATE}|${r['Lot Code']}|${r.Machine}|${r.Lane}|${r.Weight}`;
-  const existingKeys = new Set(allData.map(keyFn));
-  const added = newRows.filter(r => !existingKeys.has(keyFn(r)));
-  allData = [...allData, ...added];
-  document.getElementById('lastUpdated').textContent = `${allData.length.toLocaleString()} records (${added.length} new merged)`;
-  setupFilters();
-  applyFilters();
-}
-
-// ─── Filters ───────────────────────────────────────────────────────────────
+// ─── Filters ─────────────────────────────────────────────────────────────────
 function populateSelect(id, values) {
   const el = document.getElementById(id);
-  const cur = el.value;
-  const firstOpt = el.options[0].outerHTML;
-  el.innerHTML = firstOpt + [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
+  const cur = el.value, first = el.options[0].outerHTML;
+  el.innerHTML = first + [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
   if (cur) el.value = cur;
 }
-
 function setupFilters() {
-  const uniq = col => [...new Set(allData.map(r => r[col]).filter(Boolean))];
+  const uniq = col => [...new Set(allData.map(r=>r[col]).filter(Boolean))];
   populateSelect('filterMachine', uniq('Machine'));
   populateSelect('filterMfr', uniq('Film Manufacturer'));
   populateSelect('filterUser', uniq('Tested By'));
   populateSelect('filterPO', uniq('PO'));
 }
-
 function getFilters() {
   return {
     dateFrom: document.getElementById('filterDateFrom').value,
-    dateTo: document.getElementById('filterDateTo').value,
-    machine: document.getElementById('filterMachine').value,
-    mfr: document.getElementById('filterMfr').value,
-    user: document.getElementById('filterUser').value,
-    po: document.getElementById('filterPO').value,
+    dateTo:   document.getElementById('filterDateTo').value,
+    machine:  document.getElementById('filterMachine').value,
+    mfr:      document.getElementById('filterMfr').value,
+    user:     document.getElementById('filterUser').value,
+    po:       document.getElementById('filterPO').value,
   };
 }
-
 function clearFilters() {
   ['filterDateFrom','filterDateTo','filterMachine','filterMfr','filterUser','filterPO']
     .forEach(id => document.getElementById(id).value = '');
   applyFilters();
 }
-
 function applyFilters() {
   const f = getFilters();
   filteredData = allData.filter(r => {
     if (f.dateFrom && r.DATE < f.dateFrom) return false;
-    if (f.dateTo && r.DATE > f.dateTo) return false;
-    if (f.machine && r.Machine !== f.machine) return false;
-    if (f.mfr && r['Film Manufacturer'] !== f.mfr) return false;
-    if (f.user && r['Tested By'] !== f.user) return false;
-    if (f.po && r.PO !== f.po) return false;
+    if (f.dateTo   && r.DATE > f.dateTo)   return false;
+    if (f.machine  && r.Machine !== f.machine) return false;
+    if (f.mfr      && r['Film Manufacturer'] !== f.mfr) return false;
+    if (f.user     && r['Tested By'] !== f.user) return false;
+    if (f.po       && r.PO !== f.po) return false;
     return true;
   });
   page = 1;
   renderAll();
 }
-
 ['filterDateFrom','filterDateTo','filterMachine','filterMfr','filterUser','filterPO']
   .forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
 
-// ─── KPIs ──────────────────────────────────────────────────────────────────
+// ─── KPIs ────────────────────────────────────────────────────────────────────
 function renderKPIs() {
   const pressures = filteredData.map(r => parseFloat(r.PressureAverage)).filter(v => !isNaN(v));
-  const allMin = filteredData.map(r => parseFloat(r.PressureMIN)).filter(v => !isNaN(v));
-  const allMax = filteredData.map(r => parseFloat(r.PressureMAX)).filter(v => !isNaN(v));
+  const mins = filteredData.map(r => parseFloat(r.PressureMIN)).filter(v => !isNaN(v));
+  const maxs = filteredData.map(r => parseFloat(r.PressureMAX)).filter(v => !isNaN(v));
   const avg = pressures.length ? (pressures.reduce((a,b)=>a+b,0)/pressures.length).toFixed(0) : '—';
-  const minP = allMin.length ? Math.min(...allMin).toFixed(0) : '—';
-  const maxP = allMax.length ? Math.max(...allMax).toFixed(0) : '—';
-  const pos = [...new Set(filteredData.map(r=>r.PO).filter(Boolean))].length;
-  const lots = [...new Set(filteredData.map(r=>r['Lot Code']).filter(Boolean))].length;
-  const dates = filteredData.map(r=>r.DATE).filter(Boolean).sort();
-  const days = dates.length ? `${dates[dates.length-1]} → ${dates[0]}` : '—';
-
-  document.getElementById('kpiTotal').textContent = filteredData.length.toLocaleString();
+  const minP = mins.length ? Math.min(...mins).toFixed(0) : '—';
+  const maxP = maxs.length ? Math.max(...maxs).toFixed(0) : '—';
+  // Incoming checks = unique PO+DATE combos
+  const incoming = new Set(filteredData.map(r => `${r.DATE}|${r.PO}`).filter(k => k !== '|')).size;
+  const pos = new Set(filteredData.map(r=>r.PO).filter(Boolean)).size;
+  const lots = new Set(filteredData.map(r=>r['Lot Code']).filter(Boolean)).size;
+  document.getElementById('kpiTotal').textContent       = filteredData.length.toLocaleString();
+  document.getElementById('kpiIncoming').textContent    = incoming.toLocaleString();
   document.getElementById('kpiAvgPressure').textContent = avg;
   document.getElementById('kpiMinPressure').textContent = minP;
   document.getElementById('kpiMaxPressure').textContent = maxP;
-  document.getElementById('kpiPOs').textContent = pos;
-  document.getElementById('kpiLots').textContent = lots;
-  document.getElementById('kpiDays').textContent = dates.length ? `${dates.length} pts` : '—';
-  document.getElementById('kpiDateRange').textContent = days;
+  document.getElementById('kpiPOs').textContent         = pos;
+  document.getElementById('kpiLots').textContent        = lots;
 }
 
-// ─── Charts ────────────────────────────────────────────────────────────────
-const COLORS = ['#4f7cff','#00d4aa','#f59e0b','#ef4444','#a78bfa','#34d399','#fb923c'];
-const chartDefaults = {
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { labels: { color: '#e2e8f0', font: { size: 11 } } } },
-  scales: {
-    x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#2e3248' } },
-    y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#2e3248' } }
-  }
-};
+// ─── Snapshot: This Month ────────────────────────────────────────────────────
+function renderSnapshot() {
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthLabel = now.toLocaleString('default', {month:'long', year:'numeric'});
+
+  // Group by PO+DATE (one row per incoming check)
+  const groups = {};
+  allData.filter(r => r.DATE && r.DATE.startsWith(ym)).forEach(r => {
+    const key = `${r.DATE}||${r.PO}||${r['Film Manufacturer']}||${r.Machine}||${r['Tested By']}||${r['Lot Code']}`;
+    if (!groups[key]) groups[key] = { date: r.DATE, po: r.PO, lot: r['Lot Code'], mfr: r['Film Manufacturer'], machine: r.Machine, user: r['Tested By'], avgs:[], mins:[], maxs:[] };
+    const avg = parseFloat(r.PressureAverage), mn = parseFloat(r.PressureMIN), mx = parseFloat(r.PressureMAX);
+    if (!isNaN(avg)) groups[key].avgs.push(avg);
+    if (!isNaN(mn))  groups[key].mins.push(mn);
+    if (!isNaN(mx))  groups[key].maxs.push(mx);
+  });
+
+  const rows = Object.values(groups).sort((a,b) => b.date.localeCompare(a.date));
+  document.getElementById('snapshotTitle').innerHTML = `${monthLabel} Tests <span class="snapshot-badge" id="snapshotCount">${rows.length}</span>`;
+
+  document.getElementById('snapshotBody').innerHTML = rows.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No tests recorded this month</td></tr>`
+    : rows.map(r => {
+        const avg = r.avgs.length ? (r.avgs.reduce((a,b)=>a+b)/r.avgs.length).toFixed(1) : '—';
+        const mn  = r.mins.length ? Math.min(...r.mins) : '—';
+        const mx  = r.maxs.length ? Math.max(...r.maxs) : '—';
+        const pc  = pClass(parseFloat(avg));
+        const mb  = r.machine && r.machine.includes('1') ? 'badge-blue' : 'badge-green';
+        return `<tr>
+          <td>${r.date}</td>
+          <td><strong>${r.po||'—'}</strong> <span style="color:var(--muted);font-size:11px">/ ${r.lot||'—'}</span></td>
+          <td>${r.mfr||'—'}</td>
+          <td>${r.machine ? `<span class="badge ${mb}">${r.machine}</span>` : '—'}</td>
+          <td>${r.user||'—'}</td>
+          <td class="${pc}">${avg}</td>
+          <td>${mn}</td>
+          <td>${mx}</td>
+        </tr>`;
+      }).join('');
+}
+
+// ─── Charts ──────────────────────────────────────────────────────────────────
+const COLORS = ['#4f7cff','#00d4aa','#f59e0b','#ef4444','#a78bfa'];
+
+function chartDefaults() {
+  const tickColor = darkMode ? '#6b7280' : '#6b7280';
+  const gridColor = darkMode ? '#2e3248' : '#d1d5e0';
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ color: darkMode?'#e2e8f0':'#1a1d27', font:{size:11} } } },
+    scales:{
+      x:{ ticks:{color:tickColor,font:{size:10}}, grid:{color:gridColor} },
+      y:{ ticks:{color:tickColor,font:{size:10}}, grid:{color:gridColor} }
+    }
+  };
+}
 
 function makeChart(id, type, data, opts={}) {
-  if (charts[id]) { charts[id].destroy(); }
+  if (window._charts[id]) window._charts[id].destroy();
   const ctx = document.getElementById(id).getContext('2d');
-  charts[id] = new Chart(ctx, { type, data, options: { ...chartDefaults, ...opts } });
+  window._charts[id] = new Chart(ctx, { type, data, options:{...chartDefaults(), ...opts} });
 }
 
-function groupAvg(data, groupKey, valKey) {
-  const map = {};
-  data.forEach(r => {
-    const g = r[groupKey] || 'Unknown';
-    const v = parseFloat(r[valKey]);
-    if (!isNaN(v)) { if (!map[g]) map[g] = []; map[g].push(v); }
-  });
-  const labels = Object.keys(map).sort();
-  const values = labels.map(l => (map[l].reduce((a,b)=>a+b,0)/map[l].length).toFixed(1));
-  return { labels, values };
+// Normal distribution (bell curve) helper
+function normalDist(x, mu, sigma) {
+  return (1/(sigma*Math.sqrt(2*Math.PI))) * Math.exp(-0.5*((x-mu)/sigma)**2);
 }
 
 function renderCharts() {
-  // Timeline: avg pressure per date
+  // Timeline
   const byDate = {};
   filteredData.forEach(r => {
     const d = r.DATE; if (!d) return;
@@ -511,67 +478,73 @@ function renderCharts() {
     byDate[d].push(v);
   });
   const tlDates = Object.keys(byDate).sort();
-  const tlVals = tlDates.map(d => (byDate[d].reduce((a,b)=>a+b,0)/byDate[d].length).toFixed(1));
-  makeChart('chartTimeline', 'line', {
+  const tlVals  = tlDates.map(d => (byDate[d].reduce((a,b)=>a+b,0)/byDate[d].length).toFixed(1));
+  makeChart('chartTimeline','line',{
     labels: tlDates,
-    datasets: [{ label: 'Avg Pressure', data: tlVals, borderColor: '#4f7cff', backgroundColor: 'rgba(79,124,255,0.08)', tension: 0.3, pointRadius: 2, fill: true }]
-  }, { plugins: { legend: { display: false } } });
+    datasets:[{ label:'Avg Pressure', data:tlVals, borderColor:'#4f7cff', backgroundColor:'rgba(79,124,255,.08)', tension:.3, pointRadius:2, fill:true }]
+  },{ plugins:{legend:{display:false}} });
 
-  // Lane avg
-  const lane = groupAvg(filteredData, 'Lane', 'PressureAverage');
-  makeChart('chartLane', 'bar', {
-    labels: lane.labels,
-    datasets: [{ label: 'Avg Pressure', data: lane.values, backgroundColor: '#00d4aa', borderRadius: 4 }]
-  }, { plugins: { legend: { display: false } } });
-
-  // Machine count
-  const mCount = {};
-  filteredData.forEach(r => { const m = r.Machine||'Unknown'; mCount[m] = (mCount[m]||0)+1; });
-  makeChart('chartMachine', 'doughnut', {
-    labels: Object.keys(mCount),
-    datasets: [{ data: Object.values(mCount), backgroundColor: COLORS, borderWidth: 0 }]
-  }, { scales: {} });
+  // Bell curves by supplier
+  const mfrGroups = {};
+  filteredData.forEach(r => {
+    const m = r['Film Manufacturer']; if (!m) return;
+    const v = parseFloat(r.PressureAverage); if (isNaN(v)) return;
+    if (!mfrGroups[m]) mfrGroups[m] = [];
+    mfrGroups[m].push(v);
+  });
+  const allPressures = filteredData.map(r=>parseFloat(r.PressureAverage)).filter(v=>!isNaN(v));
+  const globalMin = Math.max(0, Math.min(...allPressures) - 100);
+  const globalMax = Math.min(MAX_PRESSURE, Math.max(...allPressures) + 100);
+  const steps = 80;
+  const step = (globalMax - globalMin) / steps;
+  const xLabels = Array.from({length:steps+1}, (_,i) => (globalMin + i*step).toFixed(0));
+  const bellDatasets = Object.entries(mfrGroups).map(([name, vals], i) => {
+    const mu = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const sigma = Math.sqrt(vals.map(v=>(v-mu)**2).reduce((a,b)=>a+b,0)/vals.length) || 1;
+    const points = xLabels.map(x => normalDist(parseFloat(x), mu, sigma).toFixed(6));
+    return { label:`${name} (μ=${mu.toFixed(0)}, σ=${sigma.toFixed(0)})`, data:points, borderColor:COLORS[i%COLORS.length], backgroundColor:'transparent', tension:.4, pointRadius:0, borderWidth:2.5 };
+  });
+  makeChart('chartBell','line',{
+    labels: xLabels,
+    datasets: bellDatasets
+  },{ scales:{ x:{ title:{display:true,text:'Pressure (psi)',color:'#6b7280'}, ticks:{maxTicksLimit:10,color:'#6b7280',font:{size:10}}, grid:{color: darkMode?'#2e3248':'#d1d5e0'} }, y:{ title:{display:true,text:'Density',color:'#6b7280'}, ticks:{color:'#6b7280',font:{size:10}}, grid:{color: darkMode?'#2e3248':'#d1d5e0'} } } });
 
   // Manufacturer avg
-  const mfr = groupAvg(filteredData, 'Film Manufacturer', 'PressureAverage');
-  makeChart('chartMfr', 'bar', {
-    labels: mfr.labels,
-    datasets: [{ label: 'Avg Pressure', data: mfr.values, backgroundColor: '#f59e0b', borderRadius: 4 }]
-  }, { plugins: { legend: { display: false } } });
+  const mfrAvg = {};
+  filteredData.forEach(r => {
+    const m = r['Film Manufacturer']; if (!m) return;
+    const v = parseFloat(r.PressureAverage); if (isNaN(v)) return;
+    if (!mfrAvg[m]) mfrAvg[m] = [];
+    mfrAvg[m].push(v);
+  });
+  const mfrLabels = Object.keys(mfrAvg).sort();
+  const mfrVals   = mfrLabels.map(m => (mfrAvg[m].reduce((a,b)=>a+b)/mfrAvg[m].length).toFixed(1));
+  makeChart('chartMfr','bar',{
+    labels: mfrLabels,
+    datasets:[{ label:'Avg Pressure', data:mfrVals, backgroundColor:COLORS.slice(0,mfrLabels.length), borderRadius:5 }]
+  },{ plugins:{legend:{display:false}} });
 
-  // Histogram
-  const vals = filteredData.map(r=>parseFloat(r.PressureAverage)).filter(v=>!isNaN(v));
-  const min = Math.floor(Math.min(...vals)/100)*100;
-  const max = Math.ceil(Math.max(...vals)/100)*100;
-  const bins = 20;
-  const step = (max-min)/bins;
-  const buckets = Array.from({length:bins},(_,i)=>min+i*step);
-  const counts = buckets.map(b => vals.filter(v=>v>=b && v<b+step).length);
-  makeChart('chartHist', 'bar', {
-    labels: buckets.map(b=>`${b.toFixed(0)}`),
-    datasets: [{ label: 'Count', data: counts, backgroundColor: 'rgba(79,124,255,0.6)', borderRadius: 2 }]
-  }, { plugins: { legend: { display: false } } });
+  // Machine bar
+  const mCount = {};
+  filteredData.forEach(r => { const m = r.Machine||'Unknown'; mCount[m]=(mCount[m]||0)+1; });
+  makeChart('chartMachine','bar',{
+    labels: Object.keys(mCount),
+    datasets:[{ label:'Test Count', data:Object.values(mCount), backgroundColor:['#4f7cff','#00d4aa','#f59e0b'], borderRadius:5 }]
+  },{ plugins:{legend:{display:false}} });
 }
 
-// ─── Table ─────────────────────────────────────────────────────────────────
+// ─── Table ───────────────────────────────────────────────────────────────────
+function pClass(v) {
+  if (isNaN(v)) return '';
+  if (v < 800)  return 'p-low';
+  if (v < 1000) return 'p-mid';
+  return 'p-high';
+}
 function sortTable(col) {
-  if (sortCol === col) sortDir *= -1;
-  else { sortCol = col; sortDir = -1; }
-  page = 1;
-  renderTable();
+  sortCol = col === sortCol ? sortCol : col;
+  sortDir = col === sortCol ? sortDir * -1 : -1;
+  sortCol = col; page = 1; renderTable();
 }
-
-function pressureClass(v) {
-  if (v < 800) return 'pressure-low';
-  if (v < 1000) return 'pressure-mid';
-  return 'pressure-high';
-}
-
-function machineBadge(m) {
-  if (!m) return '';
-  return m.includes('1') ? `<span class="badge badge-blue">${m}</span>` : `<span class="badge badge-green">${m}</span>`;
-}
-
 function renderTable() {
   const sorted = [...filteredData].sort((a,b) => {
     let av = a[sortCol]||'', bv = b[sortCol]||'';
@@ -579,51 +552,40 @@ function renderTable() {
     if (!isNaN(an) && !isNaN(bn)) return (an-bn)*sortDir;
     return av < bv ? -sortDir : av > bv ? sortDir : 0;
   });
-
-  const start = (page-1)*PAGE_SIZE, end = start+PAGE_SIZE;
-  const pageData = sorted.slice(start, end);
+  const start = (page-1)*PAGE_SIZE, pageData = sorted.slice(start, start+PAGE_SIZE);
   const totalPages = Math.ceil(sorted.length/PAGE_SIZE);
-
   document.getElementById('tableCount').textContent = `${sorted.length.toLocaleString()} records`;
-
   document.getElementById('tableBody').innerHTML = pageData.map(r => {
     const pa = parseFloat(r.PressureAverage);
-    const pClass = !isNaN(pa) ? pressureClass(pa) : '';
+    const mb = r.Machine && r.Machine.includes('1') ? 'badge-blue' : 'badge-green';
     return `<tr>
       <td>${r.DATE||''}</td>
-      <td>${r['Lot Code']||''}</td>
+      <td><strong>${r.PO||'—'}</strong> <span style="color:var(--muted);font-size:11px">/ ${r['Lot Code']||'—'}</span></td>
       <td>${r['Film Manufacturer']||''}</td>
-      <td>${r.PO||''}</td>
-      <td>${machineBadge(r.Machine)}</td>
+      <td>${r.Machine?`<span class="badge ${mb}">${r.Machine}</span>`:''}</td>
       <td>${r.Lane||''}</td>
       <td>${r.Weight||''}</td>
       <td>${r['Tested By']||''}</td>
-      <td class="${pClass}" style="font-weight:600">${isNaN(pa)?'':pa.toFixed(1)}</td>
+      <td class="${pClass(pa)}">${isNaN(pa)?'':pa.toFixed(1)}</td>
       <td>${r.PressureMIN||''}</td>
       <td>${r.PressureMAX||''}</td>
     </tr>`;
   }).join('');
-
   // Pagination
   const pag = document.getElementById('pagination');
-  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  if (totalPages <= 1) { pag.innerHTML=''; return; }
   let html = `<button class="pg-btn" onclick="goPage(${Math.max(1,page-1)})">‹ Prev</button>`;
-  const start2 = Math.max(1, page-2), end2 = Math.min(totalPages, page+2);
-  if (start2 > 1) html += `<button class="pg-btn" onclick="goPage(1)">1</button><span class="pg-info">…</span>`;
-  for (let i=start2; i<=end2; i++) html += `<button class="pg-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
-  if (end2 < totalPages) html += `<span class="pg-info">…</span><button class="pg-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
-  html += `<button class="pg-btn" onclick="goPage(${Math.min(totalPages,page+1)})">Next ›</button>`;
-  html += `<span class="pg-info">Page ${page} of ${totalPages}</span>`;
+  const s2=Math.max(1,page-2), e2=Math.min(totalPages,page+2);
+  if (s2>1) html+=`<button class="pg-btn" onclick="goPage(1)">1</button><span class="pg-info">…</span>`;
+  for(let i=s2;i<=e2;i++) html+=`<button class="pg-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(e2<totalPages) html+=`<span class="pg-info">…</span><button class="pg-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
+  html+=`<button class="pg-btn" onclick="goPage(${Math.min(totalPages,page+1)})">Next ›</button>`;
+  html+=`<span class="pg-info">Page ${page} of ${totalPages}</span>`;
   pag.innerHTML = html;
 }
+function goPage(p) { page=p; renderTable(); window.scrollTo(0,0); }
 
-function goPage(p) { page = p; renderTable(); window.scrollTo(0,0); }
-
-function renderAll() {
-  renderKPIs();
-  renderCharts();
-  renderTable();
-}
+function renderAll() { renderKPIs(); renderSnapshot(); renderCharts(); renderTable(); }
 
 init();
 </script>
