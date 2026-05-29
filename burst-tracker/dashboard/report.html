@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Monthly Report – Pops Film Burst Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#222535;--border:#2e3248;--accent:#4f7cff;--accent2:#10b981;--warn:#f59e0b;--danger:#ef4444;--text:#e2e8f0;--muted:#6b7280;--font:'Segoe UI',system-ui,sans-serif}
+    .light{--bg:#f0f2f8;--surface:#fff;--surface2:#e8eaf2;--border:#d1d5e0;--text:#1a1d27;--muted:#6b7280}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:16px}
+    .hl{display:flex;align-items:center;gap:14px}
+    .clogo{height:52px;width:auto;object-fit:contain}
+    .hdiv{width:1px;height:44px;background:var(--border)}
+    .logo{font-size:24px;font-weight:900;letter-spacing:-1px;line-height:1.1}
+    .logo span{color:var(--accent)}
+    .logo sub{font-size:11px;color:var(--muted);font-weight:400;letter-spacing:0;display:block}
+    .hr{display:flex;align-items:center;gap:10px}
+    .back-btn,.tbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .back-btn:hover,.tbtn:hover{border-color:var(--accent);color:var(--accent)}
+    .print-btn{background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600}
+
+    .controls{padding:16px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .controls label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-right:6px}
+    select,input[type=number]{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;outline:none}
+    select:focus,input:focus{border-color:var(--accent)}
+
+    .report{max-width:1000px;margin:0 auto;padding:28px 24px 60px}
+    .report-title{font-size:22px;font-weight:800;color:var(--accent);margin-bottom:4px}
+    .report-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+    @media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+    .kpi-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    .kpi-v{font-size:28px;font-weight:800;margin-top:6px;line-height:1}
+    .kpi-s{font-size:11px;color:var(--muted);margin-top:4px}
+
+    h2{font-size:15px;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .spc-status{font-size:12px;font-weight:600}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px}
+    .chart-wrap{position:relative;height:260px}
+    #spcAlerts{margin-top:12px;font-size:12px}
+
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    .tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+    th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
+    td{padding:8px 12px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border-bottom:none}
+    .g-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;font-weight:700;font-size:12px}
+    .pass{color:var(--accent2);font-weight:700}.fail{color:var(--danger);font-weight:700}.mid{color:var(--warn);font-weight:700}
+    .empty{color:var(--muted);font-style:italic;padding:14px;text-align:center}
+    .loading{display:flex;align-items:center;justify-content:center;height:300px;color:var(--muted)}
+    .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media print{
+      header,.controls,.back-btn,.print-btn,.tbtn{display:none!important}
+      body{background:#fff;color:#111}
+      .card,.kpi{border-color:#ccc;background:#fff}
+      .report{max-width:100%;padding:0}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="hl">
+    <img id="cLogo" class="clogo" src="" alt="Alamance Foods"/>
+    <div class="hdiv"></div>
+    <div class="logo">Monthly <span>Report</span><sub>Pops Film Burst Tracker</sub></div>
+  </div>
+  <div class="hr">
+    <a class="back-btn" href="index.html">← Dashboard</a>
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <button class="tbtn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+  </div>
+</header>
+
+<div class="controls">
+  <div><label>Report Month</label><select id="monthSel" onchange="renderReport()"></select></div>
+  <div><label>Pass Threshold</label><input type="number" id="thr" value="800" min="0" max="2000" step="50" style="width:90px" oninput="renderReport()"/> <span style="font-size:12px;color:var(--muted)">psi</span></div>
+</div>
+
+<div id="loadingDiv" class="loading"><div class="spinner"></div>Loading data…</div>
+
+<div class="report" id="report" style="display:none">
+  <div class="report-title" id="rTitle">—</div>
+  <div class="report-sub" id="rSub">Alamance Foods, Inc. · Quality Report</div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <h2>📈 Control Chart (SPC) <span class="spc-status" id="spcStatus"></span></h2>
+  <div class="card">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Per-test averages with process mean and ±3σ control limits. Red points = out-of-control signals (Western Electric rules).</div>
+    <div class="chart-wrap"><canvas id="cControl"></canvas></div>
+    <div id="spcAlerts"></div>
+  </div>
+
+  <h2>🏆 Supplier Performance</h2>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Supplier</th><th>Checks</th><th>Avg Pressure</th><th>Pass Rate</th><th>Consistency (σ)</th><th>Datapoints</th></tr></thead>
+    <tbody id="supBody"></tbody></table>
+  </div>
+
+  <h2>⚠ Tests Below Threshold</h2>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Date</th><th>PO / Lot</th><th>Supplier</th><th>Machine</th><th>Avg</th><th>Min</th></tr></thead>
+    <tbody id="lowBody"></tbody></table>
+  </div>
+
+  <h2>📋 All Tests This Month</h2>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Date</th><th>PO / Lot</th><th>Supplier</th><th>Machine</th><th>Tested By</th><th>Avg</th><th>Min</th><th>Max</th></tr></thead>
+    <tbody id="allBody"></tbody></table>
+  </div>
+
+  <div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center" id="genStamp"></div>
+</div>
+
+<script>
+const LOGO='data:image/png;base64,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';
+document.getElementById('cLogo').src=LOGO;
+
+let dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+function setTheme(d){dark=d;document.body.classList.toggle('light',!d);document.getElementById('themeBtn').textContent=d?'☀️ Light':'🌙 Dark';renderReport()}
+function toggleTheme(){setTheme(!dark)}
+setTheme(dark);
+
+const MAX_P=2000;
+let allData=[],controlChart=null;
+
+function valid(r){const a=+r.PressureAverage,mn=+r.PressureMIN,mx=+r.PressureMAX;if(!isNaN(a)&&a>MAX_P)return false;if(!isNaN(mn)&&!isNaN(mx)&&mn===0&&mx===0)return false;return true}
+
+function groupTests(data){
+  const map={};
+  data.forEach(r=>{
+    const k=`${r.DATE}||${r['Lot Code']}||${r.Machine}`;
+    if(!map[k])map[k]={date:r.DATE,lot:r['Lot Code'],po:r.PO,mfr:r['Film Manufacturer'],group:r['Supplier Group'],machine:r.Machine,tester:r['Tested By'],readings:[]};
+    for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P)map[k].readings.push(v)}
+  });
+  return Object.values(map).map(t=>{const r=t.readings;return{...t,avg:r.length?(r.reduce((a,b)=>a+b)/r.length).toFixed(1):'—',min:r.length?Math.min(...r):'—',max:r.length?Math.max(...r):'—',count:r.length}}).sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+async function init(){
+  try{
+    const raw=await new Promise((res,rej)=>Papa.parse('data/database.csv',{download:true,header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}));
+    allData=raw.filter(valid);
+    const months=[...new Set(allData.map(r=>r.DATE&&r.DATE.slice(0,7)).filter(Boolean))].sort().reverse();
+    const sel=document.getElementById('monthSel');
+    sel.innerHTML=months.map(m=>{const d=new Date(m+'-01T12:00:00');return `<option value="${m}">${d.toLocaleString('default',{month:'long',year:'numeric'})}</option>`}).join('');
+    document.getElementById('loadingDiv').style.display='none';
+    document.getElementById('report').style.display='block';
+    renderReport();
+  }catch(e){document.getElementById('loadingDiv').innerHTML='<span style="color:var(--danger)">Failed to load database.csv</span>'}
+}
+
+function pClass(v){const n=+v;if(isNaN(n))return '';return n<800?'fail':n<1000?'mid':'pass'}
+
+function renderReport(){
+  const ym=document.getElementById('monthSel').value;
+  if(!ym)return;
+  const thr=+document.getElementById('thr').value||800;
+  const monthName=new Date(ym+'-01T12:00:00').toLocaleString('default',{month:'long',year:'numeric'});
+  document.getElementById('rTitle').textContent='📅 '+monthName;
+
+  const monthRows=allData.filter(r=>r.DATE&&r.DATE.startsWith(ym));
+  const tests=groupTests(monthRows);
+  const readings=monthRows.flatMap(r=>{const o=[];for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P)o.push(v)}return o});
+  const mAvg=readings.length?readings.reduce((a,b)=>a+b)/readings.length:0;
+  const passCount=readings.filter(v=>v>=thr).length;
+  const passRate=readings.length?passCount/readings.length*100:0;
+  const failCount=readings.length-passCount;
+
+  // KPIs
+  document.getElementById('kpiRow').innerHTML=`
+    <div class="kpi"><div class="kpi-l">Incoming Checks</div><div class="kpi-v" style="color:var(--accent)">${tests.length}</div><div class="kpi-s">unique tests</div></div>
+    <div class="kpi"><div class="kpi-l">Avg Pressure</div><div class="kpi-v" style="color:${mAvg>=1000?'var(--accent2)':mAvg>=800?'var(--warn)':'var(--danger)'}">${mAvg.toFixed(0)}</div><div class="kpi-s">psi this month</div></div>
+    <div class="kpi"><div class="kpi-l">Pass Rate (≥${thr})</div><div class="kpi-v" style="color:${passRate>=95?'var(--accent2)':passRate>=85?'var(--warn)':'var(--danger)'}">${passRate.toFixed(1)}%</div><div class="kpi-s">${passCount}/${readings.length} readings</div></div>
+    <div class="kpi"><div class="kpi-l">Failed Readings</div><div class="kpi-v" style="color:${failCount?'var(--danger)':'var(--accent2)'}">${failCount}</div><div class="kpi-s">below ${thr} psi</div></div>`;
+
+  renderControlChart(tests,thr);
+  renderSuppliers(tests,thr);
+  renderLow(tests,thr);
+  renderAllTests(tests);
+  document.getElementById('genStamp').textContent=`Generated ${new Date().toLocaleString()} · Pops Film Burst Tracker · Alamance Foods, Inc.`;
+}
+
+function renderControlChart(tests,thr){
+  const chrono=[...tests].reverse();
+  const vals=chrono.map(t=>+t.avg).filter(v=>!isNaN(v));
+  const alertsEl=document.getElementById('spcAlerts'),statusEl=document.getElementById('spcStatus');
+  if(vals.length<3){
+    if(controlChart)controlChart.destroy();
+    alertsEl.innerHTML='<span style="color:var(--muted)">Not enough tests this month for control limits (need 3+).</span>';
+    statusEl.textContent='';return;
+  }
+  const mean=vals.reduce((a,b)=>a+b)/vals.length;
+  const sd=Math.sqrt(vals.map(v=>(v-mean)**2).reduce((a,b)=>a+b)/vals.length);
+  const ucl=mean+3*sd,lcl=Math.max(0,mean-3*sd),l2=mean-2*sd;
+  const flags=[];
+  chrono.forEach((t,i)=>{const v=+t.avg;if(v>ucl||v<lcl)flags.push({idx:i,reason:`Beyond 3σ — ${t.date}, ${t.group||t.mfr} (${v} psi)`})});
+  for(let i=6;i<vals.length;i++){let dec=true;for(let j=i-6;j<i;j++)if(vals[j+1]>=vals[j]){dec=false;break}if(dec)flags.push({idx:i,reason:`7-point downward run ending ${chrono[i].date}`})}
+  for(let i=2;i<vals.length;i++){if([vals[i-2],vals[i-1],vals[i]].filter(v=>v<l2).length>=2)flags.push({idx:i,reason:`2-of-3 below 2σ near ${chrono[i].date}`})}
+  const fset=new Set(flags.map(f=>f.idx));
+  const colors=chrono.map((t,i)=>fset.has(i)?'#ef4444':'#4f7cff');
+  const sizes=chrono.map((t,i)=>fset.has(i)?5:3);
+  const g=dark?'#2e3248':'#d1d5e0';
+  if(controlChart)controlChart.destroy();
+  controlChart=new Chart(document.getElementById('cControl'),{type:'line',data:{labels:chrono.map(t=>t.date),datasets:[
+    {label:'Test Avg',data:vals,borderColor:'#4f7cff',tension:.2,pointRadius:sizes,pointBackgroundColor:colors,borderWidth:1.5,fill:false},
+    {label:'Mean',data:vals.map(()=>mean.toFixed(1)),borderColor:'#10b981',borderDash:[6,4],pointRadius:0,borderWidth:1.5},
+    {label:'UCL +3σ',data:vals.map(()=>ucl.toFixed(1)),borderColor:'#ef4444',borderDash:[3,3],pointRadius:0,borderWidth:1},
+    {label:'LCL −3σ',data:vals.map(()=>lcl.toFixed(1)),borderColor:'#ef4444',borderDash:[3,3],pointRadius:0,borderWidth:1}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,font:{size:10},color:dark?'#e2e8f0':'#1a1d27'}}},scales:{x:{ticks:{maxTicksLimit:14,color:'#6b7280',font:{size:9}},grid:{color:g}},y:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:g},title:{display:true,text:'Avg Pressure (psi)',color:'#6b7280'}}}}});
+  const uniq=[...new Map(flags.map(f=>[f.reason,f])).values()];
+  if(uniq.length===0){statusEl.textContent='✓ In Control';statusEl.style.color='var(--accent2)';alertsEl.innerHTML='<span style="color:var(--accent2)">✓ All points within control limits. Process is stable.</span>';}
+  else{statusEl.textContent=`⚠ ${uniq.length} signal(s)`;statusEl.style.color='var(--danger)';alertsEl.innerHTML='<div style="color:var(--danger);font-weight:600;margin-bottom:4px">⚠ Out-of-control signals:</div>'+uniq.map(f=>`<div style="color:var(--muted);padding-left:12px">• ${f.reason}</div>`).join('');}
+}
+
+function renderSuppliers(tests,thr){
+  const sup={};
+  tests.forEach(t=>{const g=t.group||t.mfr;if(!g)return;if(!sup[g])sup[g]={name:g,n:0,readings:[]};sup[g].n++;sup[g].readings.push(...t.readings)});
+  const cards=Object.values(sup).map(s=>{const avg=s.readings.reduce((a,b)=>a+b,0)/s.readings.length;const sd=Math.sqrt(s.readings.map(v=>(v-avg)**2).reduce((a,b)=>a+b,0)/s.readings.length);const pr=s.readings.filter(v=>v>=thr).length/s.readings.length*100;return{...s,avg,sd,pr}}).sort((a,b)=>b.avg-a.avg);
+  document.getElementById('supBody').innerHTML=cards.length?cards.map(s=>`<tr><td style="font-weight:600">${s.name}</td><td>${s.n}</td><td class="${pClass(s.avg)}">${s.avg.toFixed(0)} psi</td><td class="${s.pr>=95?'pass':s.pr>=85?'mid':'fail'}">${s.pr.toFixed(1)}%</td><td style="color:${s.sd<150?'var(--accent2)':s.sd<250?'var(--warn)':'var(--danger)'}">±${s.sd.toFixed(0)}</td><td>${s.readings.length}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">No supplier data this month.</td></tr>';
+}
+
+function renderLow(tests,thr){
+  const low=tests.filter(t=>+t.avg<thr).sort((a,b)=>+a.avg-+b.avg);
+  document.getElementById('lowBody').innerHTML=low.length?low.map(t=>`<tr><td>${t.date}</td><td><strong>${t.po||'—'}</strong> / ${t.lot||'—'}</td><td>${t.group||t.mfr||'—'}</td><td>${t.machine||'—'}</td><td class="fail">${t.avg}</td><td class="fail">${t.min}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">✓ No tests below threshold this month. Excellent quality!</td></tr>';
+}
+
+function renderAllTests(tests){
+  document.getElementById('allBody').innerHTML=tests.length?tests.map(t=>`<tr><td>${t.date}</td><td><strong>${t.po||'—'}</strong> / ${t.lot||'—'}</td><td>${t.group||t.mfr||'—'}</td><td>${t.machine||'—'}</td><td>${t.tester||'—'}</td><td class="${pClass(t.avg)}">${t.avg}</td><td>${t.min}</td><td>${t.max}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">No tests recorded this month.</td></tr>';
+}
+
+init();
+</script>
+</body>
+</html>
