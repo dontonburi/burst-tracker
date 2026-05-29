@@ -461,6 +461,14 @@ const SUPPLIER_GROUPS = {
   'Amcor': 'Amcor', 'Flex Tek': 'Flex Tek', 'KWC': 'KWC', 'Bison': 'Bison'
 };
 
+// Normalize machine: keep "Machine 1"/"Machine 2", collapse dashes/spaces elsewhere ("C-4"→"C4")
+function normMachine(m) {
+  if (!m) return '';
+  const s = String(m).trim();
+  if (s === 'Machine 1' || s === 'Machine 2') return s;
+  return s.replace(/[\s\-]+/g, '').toUpperCase();
+}
+
 // ── Step Nav ───────────────────────────────────────────────────────────────
 function setStep(n) {
   [1,2,3].forEach(i => {
@@ -681,7 +689,7 @@ function getFormData() {
     tester: document.getElementById('rTester').value.trim(),
     lot: document.getElementById('rLot').value.trim(),
     roll: document.getElementById('rRoll').value.trim(),
-    machine: document.getElementById('rMachine').value.trim(),
+    machine: normMachine(document.getElementById('rMachine').value.trim()),
     date: document.getElementById('rDate').value,
     po: document.getElementById('rPO').value.trim(),
     group: document.getElementById('rGroup').value ||
