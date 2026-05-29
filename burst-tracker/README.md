@@ -190,6 +190,16 @@ Full paginated table (50 rows/page) with all lane-level records. Sortable by any
 
 ---
 
+
+### Quality Monitoring Features
+
+| Feature | What It Does |
+|---|---|
+| Pass/Fail Rate | Tracks % of individual readings at or above the adjustable threshold (default 800 psi). Threshold control is in the filter bar. |
+| Control Chart (SPC) | Plots each test average against ±3σ control limits with the process mean. Auto-flags out-of-control signals using Western Electric rules: points beyond 3σ, 7-point downward runs, and 2-of-3 below 2σ. |
+| Supplier Scorecard | Ranks suppliers by a composite quality score (avg pressure 40%, pass rate 35%, consistency 25%) with letter grades A–F, standard deviation, pass rate, and rising/falling trend. |
+| Monthly Report | One click generates a printable HTML report for the most recent month: KPIs, supplier performance, tests below threshold, and a full test log. Saves as `burst-report_YYYY-MM.html`. |
+
 ## 📋 Database Schema (`data/database.csv`)
 
 | Column | Description |

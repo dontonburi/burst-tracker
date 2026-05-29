@@ -143,6 +143,8 @@
   </div>
   <div class="hr">
     <div class="meta" id="metaText">Loading…</div>
+    <button class="tbtn" onclick="generateReport()" style="border-color:rgba(245,158,11,.4);color:var(--warn)">📊 Monthly Report</button>
+    <a href="scan.html" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#10b981;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px">📷 Scan Sheet</a>
     <button class="tbtn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
   </div>
 </header>
@@ -173,6 +175,7 @@
   <div class="fg"><label>Manufacturer</label><select id="fMfr"><option value="">All</option></select></div>
   <div class="fg"><label>Tested By</label><select id="fUser"><option value="">All Users</option></select></div>
   <div class="fg"><label>PO #</label><select id="fPO"><option value="">All POs</option></select></div>
+  <div class="fg"><label>Pass Threshold (psi)</label><input type="number" id="fThreshold" value="800" min="0" max="2000" step="50" style="min-width:90px" oninput="applyFilters()"/></div>
   <button class="bclear" onclick="clearFilters()">✕ Clear</button>
 </div>
 
@@ -187,6 +190,8 @@
     <div class="kpi good"><div class="kpi-label">Max Pressure</div><div class="kpi-value" id="kMax">—</div><div class="kpi-sub">test-level max</div></div>
     <div class="kpi info"><div class="kpi-label">Unique POs</div><div class="kpi-value" id="kPOs">—</div><div class="kpi-sub">purchase orders</div></div>
     <div class="kpi info"><div class="kpi-label">Lot Codes</div><div class="kpi-value" id="kLots">—</div><div class="kpi-sub">unique lots</div></div>
+    <div class="kpi good"><div class="kpi-label">Pass Rate</div><div class="kpi-value" id="kPassRate">—</div><div class="kpi-sub" id="kPassSub">readings ≥ threshold</div></div>
+    <div class="kpi warn"><div class="kpi-label">Failed Readings</div><div class="kpi-value" id="kFailCount">—</div><div class="kpi-sub" id="kFailSub">below threshold</div></div>
   </div>
 
   <!-- Last 10 Tests -->
@@ -221,6 +226,37 @@
     <div class="chart-card">
       <div class="chart-title">Avg Pressure &amp; n by Supplier</div>
       <div class="chart-wrap"><canvas id="cMfr"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Control Chart (SPC) -->
+  <div class="charts-row single">
+    <div class="chart-card">
+      <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>📈 Control Chart (SPC) — per-test averages with ±3σ control limits</span>
+        <span id="spcStatus" style="font-size:11px;font-weight:600"></span>
+      </div>
+      <div class="chart-wrap" style="height:230px"><canvas id="cControl"></canvas></div>
+      <div id="spcAlerts" style="margin-top:10px;font-size:12px"></div>
+    </div>
+  </div>
+
+  <!-- Supplier Scorecard -->
+  <div class="section">
+    <div class="sec-hdr">
+      <div class="sec-title">🏆 Supplier Scorecard</div>
+      <span class="sec-badge" id="scorecardCount">—</span>
+      <span style="font-size:12px;color:var(--muted)">— ranked by overall quality score</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Rank</th><th>Supplier</th><th>Grade</th><th>Score</th>
+          <th>Checks (n)</th><th>Avg Pressure</th><th>Consistency (σ)</th>
+          <th>Pass Rate</th><th>Min Seen</th><th>Trend</th>
+        </tr></thead>
+        <tbody id="scorecardBody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -390,6 +426,7 @@ function getF(){
     po:document.getElementById('fPO').value
   }
 }
+function getThreshold(){return +document.getElementById('fThreshold').value||800}
 function clearFilters(){
   const mn=document.getElementById('yearMin'),mx=document.getElementById('yearMax');
   mn.value=mn.min;mx.value=mx.max;updateSliderFill();
@@ -443,6 +480,19 @@ function renderKPIs(){
   document.getElementById('kMax').textContent=maxs.length?Math.max(...maxs):'—';
   document.getElementById('kPOs').textContent=new Set(fData.map(r=>r.PO).filter(Boolean)).size;
   document.getElementById('kLots').textContent=new Set(fData.map(r=>r['Lot Code']).filter(Boolean)).size;
+  // Pass/fail on individual readings vs threshold
+  const thr=getThreshold();
+  let pass=0,fail=0;
+  fData.forEach(r=>{for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P){if(v>=thr)pass++;else fail++}}});
+  const totalR=pass+fail;
+  const rate=totalR?(pass/totalR*100):0;
+  const pr=document.getElementById('kPassRate');
+  pr.textContent=totalR?rate.toFixed(1)+'%':'—';
+  pr.parentElement.className='kpi '+(rate>=95?'good':rate>=85?'warn':'info');
+  if(rate<85)pr.style.color='var(--danger)';else pr.style.color='';
+  document.getElementById('kPassSub').textContent=`${pass.toLocaleString()} / ${totalR.toLocaleString()} ≥ ${thr}`;
+  document.getElementById('kFailCount').textContent=fail.toLocaleString();
+  document.getElementById('kFailSub').textContent=`below ${thr} psi`;
 }
 
 /* Helpers */
@@ -650,7 +700,229 @@ function downloadTest(){
   a.click();URL.revokeObjectURL(a.href);
 }
 
-function renderAll(){renderKPIs();renderSnapshot();renderCharts();renderTable()}
+/* ── Control Chart (SPC) ──────────────────────────────────────────────────── */
+function renderControlChart(){
+  // Use per-test averages in chronological order
+  const tests=[...allTests].reverse(); // oldest first
+  const vals=tests.map(t=>+t.avg).filter(v=>!isNaN(v));
+  const alertsEl=document.getElementById('spcAlerts');
+  const statusEl=document.getElementById('spcStatus');
+  if(vals.length<3){
+    if(charts['cControl'])charts['cControl'].destroy();
+    alertsEl.innerHTML='<span style="color:var(--muted)">Not enough data for control limits (need 3+ tests).</span>';
+    statusEl.textContent='';
+    return;
+  }
+  const mean=vals.reduce((a,b)=>a+b)/vals.length;
+  const sd=Math.sqrt(vals.map(v=>(v-mean)**2).reduce((a,b)=>a+b)/vals.length);
+  const ucl=mean+3*sd, lcl=Math.max(0,mean-3*sd);
+  const u2=mean+2*sd, l2=mean-2*sd;
+
+  // Western Electric rules → flag out-of-control points
+  const flags=[]; // {idx, reason}
+  tests.forEach((t,i)=>{
+    const v=+t.avg;if(isNaN(v))return;
+    if(v>ucl||v<lcl)flags.push({idx:i,reason:`beyond 3σ (${t.date}, ${t.group||t.mfr}, ${v})`});
+  });
+  // Rule: 7 consecutive trending down
+  for(let i=6;i<vals.length;i++){
+    let dec=true;for(let j=i-6;j<i;j++)if(vals[j+1]>=vals[j]){dec=false;break}
+    if(dec)flags.push({idx:i,reason:`7-point downward run ending ${tests[i].date}`});
+  }
+  // Rule: 2 of 3 beyond 2σ (low side - quality concern)
+  for(let i=2;i<vals.length;i++){
+    const w=[vals[i-2],vals[i-1],vals[i]];
+    if(w.filter(v=>v<l2).length>=2)flags.push({idx:i,reason:`2-of-3 below 2σ near ${tests[i].date}`});
+  }
+
+  const flagIdx=new Set(flags.map(f=>f.idx));
+  const pointColors=tests.map((t,i)=>flagIdx.has(i)?'#ef4444':'#4f7cff');
+  const pointSizes=tests.map((t,i)=>flagIdx.has(i)?5:2);
+
+  const labels=tests.map(t=>t.date);
+  mkChart('cControl','line',{
+    labels,
+    datasets:[
+      {label:'Test Avg',data:vals,borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,.05)',tension:.2,pointRadius:pointSizes,pointBackgroundColor:pointColors,fill:false,borderWidth:1.5},
+      {label:'Mean',data:vals.map(()=>mean.toFixed(1)),borderColor:'#10b981',borderDash:[6,4],pointRadius:0,borderWidth:1.5},
+      {label:'UCL (+3σ)',data:vals.map(()=>ucl.toFixed(1)),borderColor:'#ef4444',borderDash:[3,3],pointRadius:0,borderWidth:1},
+      {label:'LCL (−3σ)',data:vals.map(()=>lcl.toFixed(1)),borderColor:'#ef4444',borderDash:[3,3],pointRadius:0,borderWidth:1}
+    ]
+  },{plugins:{legend:{labels:{boxWidth:12,font:{size:10},color:dark?'#e2e8f0':'#1a1d27'}}},scales:{x:{ticks:{maxTicksLimit:12,color:'#6b7280',font:{size:9}},grid:{color:dark?'#2e3248':'#d1d5e0'}},y:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:dark?'#2e3248':'#d1d5e0'},title:{display:true,text:'Avg Pressure (psi)',color:'#6b7280'}}}});
+
+  // Dedupe flags by reason
+  const uniqueFlags=[...new Map(flags.map(f=>[f.reason,f])).values()];
+  if(uniqueFlags.length===0){
+    statusEl.textContent='✓ In Control';statusEl.style.color='var(--accent2)';
+    alertsEl.innerHTML='<span style="color:var(--accent2)">✓ All points within control limits. Process is stable.</span>';
+  }else{
+    statusEl.textContent=`⚠ ${uniqueFlags.length} signal(s)`;statusEl.style.color='var(--danger)';
+    alertsEl.innerHTML='<div style="color:var(--danger);font-weight:600;margin-bottom:4px">⚠ Out-of-control signals detected:</div>'+
+      uniqueFlags.slice(0,6).map(f=>`<div style="color:var(--muted);padding-left:12px">• ${f.reason}</div>`).join('')+
+      (uniqueFlags.length>6?`<div style="color:var(--muted);padding-left:12px">…and ${uniqueFlags.length-6} more</div>`:'');
+  }
+  window._spc={mean,sd,ucl,lcl,flags:uniqueFlags};
+}
+
+/* ── Supplier Scorecard ───────────────────────────────────────────────────── */
+function computeScorecard(){
+  const thr=getThreshold();
+  const sup={};
+  allTests.forEach(t=>{
+    const g=t.group||t.mfr;if(!g)return;
+    if(!sup[g])sup[g]={name:g,tests:[],readings:[],dates:[]};
+    sup[g].tests.push(t);
+    sup[g].dates.push(t.date);
+    t.lanes.forEach(l=>l.p.forEach(v=>{if(v>0&&v<=MAX_P)sup[g].readings.push(v)}));
+  });
+  const cards=Object.values(sup).filter(s=>s.readings.length>0).map(s=>{
+    const r=s.readings;
+    const avg=r.reduce((a,b)=>a+b)/r.length;
+    const sd=Math.sqrt(r.map(v=>(v-avg)**2).reduce((a,b)=>a+b)/r.length);
+    const passRate=r.filter(v=>v>=thr).length/r.length*100;
+    const minSeen=Math.min(...r);
+    const n=s.tests.length;
+    const cv=sd/avg; // coefficient of variation (lower=more consistent)
+    // Trend: compare avg of recent half vs older half (by date)
+    const sorted=[...s.tests].sort((a,b)=>a.date.localeCompare(b.date));
+    let trend=0;
+    if(sorted.length>=4){
+      const half=Math.floor(sorted.length/2);
+      const older=sorted.slice(0,half).map(t=>+t.avg).filter(v=>!isNaN(v));
+      const newer=sorted.slice(half).map(t=>+t.avg).filter(v=>!isNaN(v));
+      if(older.length&&newer.length){
+        const oa=older.reduce((a,b)=>a+b)/older.length;
+        const na=newer.reduce((a,b)=>a+b)/newer.length;
+        trend=na-oa;
+      }
+    }
+    // Composite score (0-100): avg pressure (40%), pass rate (35%), consistency (25%)
+    const avgScore=Math.min(100,(avg/1200)*100);
+    const consScore=Math.max(0,100-cv*400); // cv of 0.25 → 0
+    const score=(avgScore*0.40+passRate*0.35+consScore*0.25);
+    const grade=score>=90?'A':score>=80?'B':score>=70?'C':score>=60?'D':'F';
+    return{...s,avg,sd,passRate,minSeen,n,score,grade,trend};
+  }).sort((a,b)=>b.score-a.score);
+  return cards;
+}
+
+function renderScorecard(){
+  const cards=computeScorecard();
+  document.getElementById('scorecardCount').textContent=`${cards.length} suppliers`;
+  const gradeColor=g=>({A:'#10b981',B:'#4f7cff',C:'#f59e0b',D:'#fb923c',F:'#ef4444'}[g]||'#6b7280');
+  const trendIcon=t=>t>30?'<span style="color:var(--accent2)">▲ rising</span>':t<-30?'<span style="color:var(--danger)">▼ falling</span>':'<span style="color:var(--muted)">▬ stable</span>';
+  document.getElementById('scorecardBody').innerHTML=cards.map((c,i)=>`
+    <tr>
+      <td style="font-weight:700;color:var(--muted)">#${i+1}</td>
+      <td style="font-weight:600">${c.name}</td>
+      <td><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${gradeColor(c.grade)};color:#fff;font-weight:700;font-size:13px">${c.grade}</span></td>
+      <td style="font-weight:600;color:${gradeColor(c.grade)}">${c.score.toFixed(0)}</td>
+      <td>${c.n}</td>
+      <td class="${pClass(c.avg)}">${c.avg.toFixed(0)} psi</td>
+      <td style="color:${c.sd<150?'var(--accent2)':c.sd<250?'var(--warn)':'var(--danger)'}">±${c.sd.toFixed(0)}</td>
+      <td style="color:${c.passRate>=95?'var(--accent2)':c.passRate>=85?'var(--warn)':'var(--danger)'};font-weight:600">${c.passRate.toFixed(1)}%</td>
+      <td class="${pClass(c.minSeen)}">${c.minSeen}</td>
+      <td>${trendIcon(c.trend)}</td>
+    </tr>`).join('');
+  window._scorecard=cards;
+}
+
+/* ── Monthly Report Generator ─────────────────────────────────────────────── */
+function generateReport(){
+  // Determine target month: most recent month with data
+  const allDates=allData.map(r=>r.DATE).filter(Boolean).sort();
+  if(allDates.length===0){alert('No data to report on.');return;}
+  const latest=allDates[allDates.length-1];
+  const ym=latest.slice(0,7);
+  const monthName=new Date(ym+'-01T12:00:00').toLocaleString('default',{month:'long',year:'numeric'});
+
+  const monthRows=allData.filter(r=>r.DATE&&r.DATE.startsWith(ym));
+  const monthTests=groupTests(monthRows);
+  const thr=getThreshold();
+
+  // Month stats
+  const readings=monthRows.flatMap(r=>{const o=[];for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P)o.push(v)}return o});
+  const mAvg=readings.length?(readings.reduce((a,b)=>a+b)/readings.length):0;
+  const passCount=readings.filter(v=>v>=thr).length;
+  const passRate=readings.length?(passCount/readings.length*100):0;
+  const failCount=readings.length-passCount;
+
+  // Supplier breakdown for the month
+  const supM={};
+  monthTests.forEach(t=>{const g=t.group||t.mfr;if(!g)return;if(!supM[g])supM[g]={name:g,n:0,readings:[]};supM[g].n++;t.lanes.forEach(l=>l.p.forEach(v=>{if(v>0)supM[g].readings.push(v)}))});
+  const supCards=Object.values(supM).map(s=>{
+    const avg=s.readings.reduce((a,b)=>a+b,0)/s.readings.length;
+    const pr=s.readings.filter(v=>v>=thr).length/s.readings.length*100;
+    return{...s,avg,pr};
+  }).sort((a,b)=>b.avg-a.avg);
+
+  // Failed/low tests this month
+  const lowTests=monthTests.filter(t=>+t.avg<thr).sort((a,b)=>+a.avg-+b.avg);
+
+  const logo=document.getElementById('cLogo').src;
+  const gradeColor=g=>({A:'#10b981',B:'#4f7cff',C:'#f59e0b',D:'#fb923c',F:'#ef4444'}[g]||'#6b7280');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Burst Test Report — ${monthName}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:#1a1d27;background:#fff;padding:40px;max-width:1000px;margin:0 auto;font-size:13px;line-height:1.5}
+  .rh{display:flex;align-items:center;gap:16px;border-bottom:3px solid #4f7cff;padding-bottom:16px;margin-bottom:8px}
+  .rh img{height:56px}
+  .rh-title{font-size:24px;font-weight:800}
+  .rh-title span{color:#4f7cff}
+  .rh-sub{font-size:13px;color:#6b7280;margin-top:2px}
+  .report-period{font-size:16px;font-weight:700;margin:20px 0 16px;color:#4f7cff}
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .kpi{border:1px solid #e2e8f0;border-radius:8px;padding:14px}
+  .kpi-l{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+  .kpi-v{font-size:24px;font-weight:800;margin-top:4px}
+  h2{font-size:15px;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
+  table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}
+  th{background:#f1f5f9;padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid #e2e8f0;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+  td{padding:7px 10px;border-bottom:1px solid #eef1f5}
+  .g-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;font-weight:700;font-size:12px}
+  .pass{color:#10b981;font-weight:700}.fail{color:#ef4444;font-weight:700}.mid{color:#f59e0b;font-weight:700}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:11px;color:#9ca3af;text-align:center}
+  .empty{color:#9ca3af;font-style:italic;padding:12px}
+  @media print{body{padding:16px}.kpi-row{grid-template-columns:repeat(4,1fr)}}
+</style></head><body>
+  <div class="rh">
+    <img src="${logo}" alt="Alamance Foods"/>
+    <div><div class="rh-title">Pops Film Burst <span>Tracker</span></div><div class="rh-sub">Monthly Quality Report · Alamance Foods, Inc.</div></div>
+  </div>
+  <div class="report-period">📅 ${monthName}</div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Incoming Checks</div><div class="kpi-v">${monthTests.length}</div></div>
+    <div class="kpi"><div class="kpi-l">Avg Pressure</div><div class="kpi-v" style="color:${mAvg>=1000?'#10b981':mAvg>=800?'#f59e0b':'#ef4444'}">${mAvg.toFixed(0)}</div></div>
+    <div class="kpi"><div class="kpi-l">Pass Rate (≥${thr})</div><div class="kpi-v" style="color:${passRate>=95?'#10b981':passRate>=85?'#f59e0b':'#ef4444'}">${passRate.toFixed(1)}%</div></div>
+    <div class="kpi"><div class="kpi-l">Failed Readings</div><div class="kpi-v" style="color:${failCount?'#ef4444':'#10b981'}">${failCount}</div></div>
+  </div>
+
+  <h2>Supplier Performance — ${monthName}</h2>
+  ${supCards.length?`<table><thead><tr><th>Supplier</th><th>Checks</th><th>Avg Pressure</th><th>Pass Rate</th><th>Datapoints</th></tr></thead><tbody>
+    ${supCards.map(s=>`<tr><td style="font-weight:600">${s.name}</td><td>${s.n}</td><td class="${s.avg>=1000?'pass':s.avg>=800?'mid':'fail'}">${s.avg.toFixed(0)} psi</td><td class="${s.pr>=95?'pass':s.pr>=85?'mid':'fail'}">${s.pr.toFixed(1)}%</td><td>${s.readings.length}</td></tr>`).join('')}
+  </tbody></table>`:'<div class="empty">No supplier data this month.</div>'}
+
+  <h2>⚠ Tests Below Threshold (${thr} psi)</h2>
+  ${lowTests.length?`<table><thead><tr><th>Date</th><th>PO / Lot</th><th>Supplier</th><th>Machine</th><th>Avg</th><th>Min</th></tr></thead><tbody>
+    ${lowTests.map(t=>`<tr><td>${t.date}</td><td><strong>${t.po||'—'}</strong> / ${t.lot||'—'}</td><td>${t.group||t.mfr||'—'}</td><td>${t.machine||'—'}</td><td class="fail">${t.avg}</td><td class="fail">${t.min}</td></tr>`).join('')}
+  </tbody></table>`:'<div class="empty">✓ No tests fell below threshold this month. Excellent quality!</div>'}
+
+  <h2>All Tests This Month (${monthTests.length})</h2>
+  ${monthTests.length?`<table><thead><tr><th>Date</th><th>PO / Lot</th><th>Supplier</th><th>Machine</th><th>Tested By</th><th>Avg</th><th>Min</th><th>Max</th></tr></thead><tbody>
+    ${monthTests.map(t=>`<tr><td>${t.date}</td><td><strong>${t.po||'—'}</strong> / ${t.lot||'—'}</td><td>${t.group||t.mfr||'—'}</td><td>${t.machine||'—'}</td><td>${t.tester||'—'}</td><td class="${+t.avg>=1000?'pass':+t.avg>=800?'mid':'fail'}">${t.avg}</td><td>${t.min}</td><td>${t.max}</td></tr>`).join('')}
+  </tbody></table>`:'<div class="empty">No tests recorded this month.</div>'}
+
+  <div class="footer">Generated ${new Date().toLocaleString()} · Pops Film Burst Tracker · Alamance Foods, Inc.</div>
+</body></html>`;
+
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`burst-report_${ym}.html`;a.click();URL.revokeObjectURL(a.href);
+}
+
+function renderAll(){renderKPIs();renderSnapshot();renderCharts();renderControlChart();renderScorecard();renderTable()}
 init();
 </script>
 </body>

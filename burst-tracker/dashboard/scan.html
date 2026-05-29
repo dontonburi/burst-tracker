@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+  <title>Scan Test Sheet – Pops Film Burst Tracker</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+    :root {
+      --bg: #0a0c10;
+      --surface: #12151c;
+      --surface2: #1a1e28;
+      --border: #252a38;
+      --accent: #3b82f6;
+      --accent2: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 14px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .back-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); padding: 6px 12px; border-radius: 6px;
+      cursor: pointer; font-size: 12px; font-family: var(--sans);
+      text-decoration: none; display: flex; align-items: center; gap: 6px;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .page-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    .page-title span { color: var(--accent); }
+    .page-sub { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+    /* ── API Key Banner ── */
+    .api-banner {
+      background: rgba(59,130,246,.08); border-bottom: 1px solid rgba(59,130,246,.2);
+      padding: 10px 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .api-banner.hidden { display: none; }
+    .api-banner label { font-size: 12px; color: var(--accent); white-space: nowrap; }
+    .api-banner input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 6px 10px; border-radius: 6px; font-family: var(--mono);
+      font-size: 12px; outline: none; max-width: 380px;
+    }
+    .api-banner input:focus { border-color: var(--accent); }
+    .api-save { background: var(--accent); border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+    /* ── Main Layout ── */
+    .main { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+
+    /* ── Step Indicators ── */
+    .steps { display: flex; gap: 0; margin-bottom: 28px; }
+    .step {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border: 1px solid var(--border);
+      background: var(--surface); position: relative;
+      font-size: 12px; color: var(--muted);
+    }
+    .step:first-child { border-radius: 8px 0 0 8px; }
+    .step:last-child { border-radius: 0 8px 8px 0; }
+    .step.active { border-color: var(--accent); color: var(--text); background: rgba(59,130,246,.06); }
+    .step.done { border-color: var(--accent2); color: var(--accent2); }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 50%; border: 2px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .step.done .step-num { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+    .step-label { font-weight: 600; }
+
+    /* ── Panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Upload Zone ── */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 16px;
+      background: var(--surface); text-align: center;
+      padding: 48px 24px; cursor: pointer; transition: all .2s;
+      position: relative; overflow: hidden;
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(59,130,246,.04); }
+    .upload-zone input[type=file] { display: none; }
+    .uz-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+    .uz-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .uz-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+    .uz-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent); color: #fff; border: none;
+      padding: 12px 24px; border-radius: 8px; font-size: 14px;
+      font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      font-family: var(--sans); transition: opacity .2s;
+    }
+    .btn-primary:hover { opacity: .85; }
+    .btn-primary.green { background: var(--accent2); }
+    .btn-secondary {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      padding: 12px 24px; border-radius: 8px; font-size: 14px;
+      font-weight: 600; cursor: pointer; font-family: var(--sans);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Camera View ── */
+    #cameraSection { display: none; margin-top: 20px; }
+    #videoEl { width: 100%; border-radius: 10px; border: 2px solid var(--border); max-height: 400px; object-fit: cover; }
+    .cam-controls { display: flex; gap: 12px; margin-top: 12px; justify-content: center; }
+
+    /* ── Preview ── */
+    #previewSection { display: none; margin-top: 20px; text-align: center; }
+    #previewImg { max-width: 100%; border-radius: 10px; border: 2px solid var(--accent); max-height: 400px; object-fit: contain; }
+    .preview-actions { display: flex; gap: 12px; justify-content: center; margin-top: 14px; }
+
+    /* ── Processing ── */
+    #processingPanel {
+      text-align: center; padding: 60px 24px;
+      background: var(--surface); border-radius: 16px;
+    }
+    .pulse-ring {
+      width: 80px; height: 80px; border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: var(--accent);
+      border-right-color: rgba(59,130,246,.3);
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .proc-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .proc-sub { font-size: 13px; color: var(--muted); }
+    .proc-steps { margin-top: 20px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .proc-step { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .proc-step.active-step { color: var(--accent); }
+    .proc-step.done-step { color: var(--accent2); }
+
+    /* ── Review Form ── */
+    .review-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .confidence-badge {
+      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .conf-hi { background: rgba(16,185,129,.15); color: var(--accent2); }
+    .conf-mid { background: rgba(245,158,11,.15); color: var(--warn); }
+    .conf-lo { background: rgba(239,68,68,.15); color: var(--danger); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    @media(max-width:600px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      padding: 9px 12px; border-radius: 8px; font-size: 13px; font-family: var(--sans); outline: none;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 64px; }
+    .form-group input.flagged { border-color: var(--warn); }
+
+    /* ── Lane Table ── */
+    .lane-section { margin-bottom: 20px; }
+    .lane-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .lane-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .lane-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+    .lane-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .lane-tbl th {
+      background: var(--surface2); padding: 8px 10px; text-align: center;
+      font-weight: 600; color: var(--muted); font-size: 11px; letter-spacing: .5px;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .lane-tbl th:first-child { text-align: left; }
+    .lane-tbl td { border-bottom: 1px solid var(--border); }
+    .lane-tbl tr:last-child td { border-bottom: none; }
+    .lane-tbl td:first-child { padding: 6px 10px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .lane-tbl input[type=number] {
+      width: 76px; background: var(--surface); border: none; border-left: 1px solid var(--border);
+      color: var(--text); padding: 6px 8px; font-size: 12px; font-family: var(--mono);
+      text-align: center; outline: none; display: block;
+    }
+    .lane-tbl input[type=number]:focus { background: rgba(59,130,246,.08); color: var(--accent); }
+    .lane-tbl input[type=number].low-warn { background: rgba(245,158,11,.12); color: var(--warn); }
+    .lane-tbl input[type=number].low-danger { background: rgba(239,68,68,.12); color: var(--danger); }
+    .lane-avg-cell { padding: 6px 10px; text-align: center; font-family: var(--mono); font-weight: 600; color: var(--accent2); }
+
+    /* ── Review Actions ── */
+    .review-actions { display: flex; gap: 12px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--border); }
+
+    /* ── Queue ── */
+    .queue-section { margin-top: 28px; }
+    .queue-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+    .queue-title { font-size: 15px; font-weight: 700; }
+    .queue-count { background: rgba(59,130,246,.12); color: var(--accent); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .queue-list { display: flex; flex-direction: column; gap: 8px; }
+    .queue-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .qi-info { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+    .qi-field { display: flex; flex-direction: column; gap: 2px; }
+    .qi-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .qi-val { font-weight: 600; }
+    .qi-avg { color: var(--accent2); }
+    .qi-remove { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; }
+    .qi-remove:hover { border-color: var(--danger); color: var(--danger); }
+    .empty-queue { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+
+    /* ── Error ── */
+    .error-box {
+      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
+      border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+      display: none;
+    }
+    .error-box.show { display: block; }
+    .error-box p { font-size: 13px; color: #fca5a5; }
+
+    /* mobile tweaks */
+    @media(max-width:500px) {
+      .steps { flex-direction: column; gap: 4px; }
+      .step:first-child, .step:last-child, .step { border-radius: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back-btn" href="index.html">← Dashboard</a>
+  <div class="page-title">📷 <span>Scan</span> Test Sheet</div>
+  <div class="page-sub">AI-powered data extraction</div>
+</header>
+
+<!-- API Key Banner (shown when not in Claude.ai artifact context) -->
+<div class="api-banner" id="apiBanner">
+  <label>🔑 Anthropic API Key:</label>
+  <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off"/>
+  <button class="api-save" onclick="saveApiKey()">Save</button>
+</div>
+
+<div class="main">
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step1"><div class="step-num">1</div><span class="step-label">Capture</span></div>
+    <div class="step" id="step2"><div class="step-num">2</div><span class="step-label">Extract</span></div>
+    <div class="step" id="step3"><div class="step-num">3</div><span class="step-label">Review</span></div>
+    <div class="step" id="step4"><div class="step-num">4</div><span class="step-label">Save</span></div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"><p id="errorMsg"></p></div>
+
+  <!-- Panel 1: Capture -->
+  <div class="panel active" id="panel1">
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileIn" accept="image/*" capture="environment"/>
+      <span class="uz-icon">📄</span>
+      <div class="uz-title">Upload your test sheet</div>
+      <div class="uz-sub">Take a photo or upload a scan. Works best with clear, well-lit images.</div>
+      <div class="uz-actions">
+        <button class="btn-primary" onclick="document.getElementById('camIn').click()">📷 Take Photo</button>
+        <input type="file" id="camIn" accept="image/*" capture="environment" style="display:none" onchange="handleFile(this)"/>
+        <button class="btn-secondary" onclick="document.getElementById('gallIn').click()">🖼 Choose File</button>
+        <input type="file" id="gallIn" accept="image/*, application/pdf" style="display:none" onchange="handleFile(this)"/>
+      </div>
+    </div>
+
+    <div id="previewSection">
+      <img id="previewImg" src="" alt="Preview"/>
+      <div class="preview-actions">
+        <button class="btn-primary" onclick="startExtraction()">🤖 Extract Data with AI</button>
+        <button class="btn-secondary" onclick="resetCapture()">↺ Retake</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 2: Processing -->
+  <div class="panel" id="panel2">
+    <div id="processingPanel">
+      <div class="pulse-ring"></div>
+      <div class="proc-title">Analyzing your test sheet…</div>
+      <div class="proc-sub">Claude is reading the handwritten data</div>
+      <div class="proc-steps">
+        <div class="proc-step" id="ps1">○ Reading image metadata</div>
+        <div class="proc-step" id="ps2">○ Identifying form fields</div>
+        <div class="proc-step" id="ps3">○ Extracting pressure readings</div>
+        <div class="proc-step" id="ps4">○ Calculating test statistics</div>
+        <div class="proc-step" id="ps5">○ Validating extracted data</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 3: Review -->
+  <div class="panel" id="panel3">
+    <div class="review-header">
+      <div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">Review Extracted Data</div>
+        <div style="font-size:12px;color:var(--muted)">Correct any misread values before saving</div>
+      </div>
+      <div id="confBadge" class="confidence-badge conf-hi">● High Confidence</div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Film Manufacturer</label>
+        <input type="text" id="rMfr" placeholder="e.g. Hong Kong, TKT…"/>
+      </div>
+      <div class="form-group">
+        <label>Tested By</label>
+        <input type="text" id="rTester" placeholder="Operator name"/>
+      </div>
+      <div class="form-group">
+        <label>Lot Code #</label>
+        <input type="text" id="rLot" placeholder="e.g. 241006"/>
+      </div>
+      <div class="form-group">
+        <label>Master Roll #</label>
+        <input type="text" id="rRoll" placeholder="e.g. 115 / 114"/>
+      </div>
+      <div class="form-group">
+        <label>Machine #</label>
+        <input type="text" id="rMachine" placeholder="e.g. Machine 1, B2…"/>
+      </div>
+      <div class="form-group">
+        <label>Date of Test</label>
+        <input type="date" id="rDate"/>
+      </div>
+      <div class="form-group">
+        <label>PO # (6 digits)</label>
+        <input type="text" id="rPO" placeholder="e.g. 293563" maxlength="6"/>
+      </div>
+      <div class="form-group">
+        <label>Supplier Group</label>
+        <select id="rGroup">
+          <option value="">Auto-detect</option>
+          <option value="Hong Kong">Hong Kong</option>
+          <option value="TKT">TKT</option>
+          <option value="BMP GROUP">BMP GROUP</option>
+          <option value="APC">APC</option>
+          <option value="Amcor">Amcor</option>
+          <option value="Flex Tek">Flex Tek</option>
+          <option value="KWC">KWC</option>
+          <option value="Novel">Novel</option>
+          <option value="Qingdao">Qingdao</option>
+          <option value="Bison">Bison</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Lane Pressure Table -->
+    <div class="lane-section">
+      <div class="lane-title">
+        Pressure Readings
+        <span class="lane-hint">Cells highlighted amber/red are below quality thresholds. Empty cells = no reading.</span>
+      </div>
+      <div class="lane-table-wrap">
+        <table class="lane-tbl" id="laneTable">
+          <thead>
+            <tr>
+              <th>Lane</th>
+              <th>Press #1</th><th>Press #2</th><th>Press #3</th>
+              <th>Press #4</th><th>Press #5</th><th>Press #6</th>
+              <th>Lane Avg</th>
+            </tr>
+          </thead>
+          <tbody id="laneTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="form-group" style="margin-bottom:20px">
+      <label>Comments</label>
+      <textarea id="rComments" placeholder="Any notes or observations from the test…"></textarea>
+    </div>
+
+    <div class="review-actions">
+      <button class="btn-primary green" onclick="addToQueue()">✓ Add to Queue</button>
+      <button class="btn-secondary" onclick="resetCapture()">↺ Scan Another</button>
+    </div>
+  </div>
+
+  <!-- Panel 4: Queued -->
+  <div class="panel active" id="panel4" style="display:block">
+    <div class="queue-section">
+      <div class="queue-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="queue-title">Pending Upload Queue</div>
+          <span class="queue-count" id="queueCount">0</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-primary" id="downloadBtn" onclick="downloadQueue()" disabled>⬇ Download CSV</button>
+          <button class="btn-secondary" onclick="clearQueue()" id="clearBtn" style="display:none">🗑 Clear Queue</button>
+        </div>
+      </div>
+      <div id="queueList" class="queue-list">
+        <div class="empty-queue">No scans in queue yet. Scan a sheet above and add it here.</div>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.7">
+        <strong style="color:var(--text)">How to add to the database:</strong><br/>
+        1. Scan all your sheets and add them to the queue<br/>
+        2. Click <strong style="color:var(--accent)">Download CSV</strong> to get a file with all new records<br/>
+        3. Go back to the <a href="index.html" style="color:var(--accent)">Dashboard</a> → click <strong>Upload CSV</strong> → select the downloaded file
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── API Key Management ─────────────────────────────────────────────────────
+let apiKey = '';
+
+// Try to detect if we're in Claude.ai artifact context (no key needed)
+const inArtifact = window.location.href.includes('claude.ai') ||
+                   window.location.href.startsWith('blob:') ||
+                   typeof window.storage !== 'undefined';
+
+if (inArtifact) {
+  document.getElementById('apiBanner').classList.add('hidden');
+} else {
+  // Check sessionStorage for saved key
+  apiKey = sessionStorage.getItem('burst_api_key') || '';
+  if (apiKey) document.getElementById('apiBanner').classList.add('hidden');
+}
+
+function saveApiKey() {
+  apiKey = document.getElementById('apiKeyInput').value.trim();
+  if (apiKey) {
+    sessionStorage.setItem('burst_api_key', apiKey);
+    document.getElementById('apiBanner').classList.add('hidden');
+    showError('');
+  }
+}
+
+// ── State ──────────────────────────────────────────────────────────────────
+let capturedImageB64 = '';
+let queue = JSON.parse(sessionStorage.getItem('scan_queue') || '[]');
+let extractedData = null;
+
+const SUPPLIER_GROUPS = {
+  'Hong Kong': 'Hong Kong', 'Novel': 'Hong Kong', 'Qingdao': 'Hong Kong', 'China': 'Hong Kong',
+  'TKT': 'TKT', 'BMP GROUP': 'BMP GROUP', 'APC': 'APC', 'American': 'APC',
+  'Amcor': 'Amcor', 'Flex Tek': 'Flex Tek', 'KWC': 'KWC', 'Bison': 'Bison'
+};
+
+// ── Step Nav ───────────────────────────────────────────────────────────────
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById(`step${i}`).className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    document.getElementById(`panel${i}`).className = 'panel' + (i === n ? ' active' : '');
+  });
+  document.getElementById('step4').className = 'step';
+}
+
+// ── File Handling ──────────────────────────────────────────────────────────
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    capturedImageB64 = dataUrl.split(',')[1];
+    document.getElementById('previewImg').src = dataUrl;
+    document.getElementById('previewSection').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetCapture() {
+  capturedImageB64 = '';
+  document.getElementById('previewSection').style.display = 'none';
+  document.getElementById('uploadZone').style.display = 'block';
+  showError('');
+  setStep(1);
+}
+
+// Drag-and-drop
+const uz = document.getElementById('uploadZone');
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag'); });
+uz.addEventListener('dragleave', () => uz.classList.remove('drag'));
+uz.addEventListener('drop', e => {
+  e.preventDefault(); uz.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const fakeInput = { files: [file] };
+    handleFile(fakeInput);
+  }
+});
+
+// ── Extraction ─────────────────────────────────────────────────────────────
+async function startExtraction() {
+  if (!capturedImageB64) return;
+  showError('');
+  setStep(2);
+
+  const steps = ['ps1','ps2','ps3','ps4','ps5'];
+  let si = 0;
+  const stepTimer = setInterval(() => {
+    if (si > 0) document.getElementById(steps[si-1]).className = 'proc-step done-step';
+    if (si < steps.length) {
+      document.getElementById(steps[si]).className = 'proc-step active-step';
+      si++;
+    }
+  }, 700);
+
+  const prompt = `You are extracting data from a handwritten Film Compression Test sheet for Alamance Foods.
+
+Extract ALL data precisely and return ONLY valid JSON (no markdown, no explanation):
+
+{
+  "film_manufacturer": "string",
+  "tested_by": "string",
+  "lot_code": "string",
+  "master_roll": "string",
+  "machine": "string",
+  "date_of_test": "YYYY-MM-DD or empty string",
+  "date_of_run": "YYYY-MM-DD or empty string",
+  "po": "6-digit string or empty",
+  "comments": "string or empty",
+  "confidence": "high|medium|low",
+  "lanes": [
+    {
+      "lane": 1,
+      "pressures": [number_or_null, number_or_null, number_or_null, number_or_null, number_or_null, number_or_null]
+    }
+  ]
+}
+
+Rules:
+- lanes array must have exactly 12 entries (lane 1-12), even if some are empty
+- pressures array must have exactly 6 entries; use null for missing readings
+- Ignore any asterisk (*) markers — keep the number, note flagged readings in comments
+- For dates: convert handwritten dates like "5.20.26" or "5-20-26" to YYYY-MM-DD (assume 2000s: "26" = 2026)
+- For lot codes: preserve exactly as written (alphanumeric)
+- If a field is illegible, use empty string
+- confidence: "high" if all 12 lanes readable, "medium" if some issues, "low" if major problems`;
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (!inArtifact && apiKey) headers['x-api-key'] = apiKey;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: capturedImageB64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    clearInterval(stepTimer);
+    steps.forEach(s => document.getElementById(s).className = 'proc-step done-step');
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        document.getElementById('apiBanner').classList.remove('hidden');
+        throw new Error('Invalid API key. Please enter your Anthropic API key above.');
+      }
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    const clean = raw.replace(/```json|```/g, '').trim();
+    extractedData = JSON.parse(clean);
+    populateReviewForm(extractedData);
+    setStep(3);
+
+  } catch (err) {
+    clearInterval(stepTimer);
+    showError('Extraction failed: ' + err.message);
+    setStep(1);
+  }
+}
+
+// ── Populate Review Form ──────────────────────────────────────────────────
+function populateReviewForm(d) {
+  document.getElementById('rMfr').value = d.film_manufacturer || '';
+  document.getElementById('rTester').value = d.tested_by || '';
+  document.getElementById('rLot').value = d.lot_code || '';
+  document.getElementById('rRoll').value = d.master_roll || '';
+  document.getElementById('rMachine').value = d.machine || '';
+  document.getElementById('rDate').value = d.date_of_test || d.date_of_run || '';
+  document.getElementById('rPO').value = d.po || '';
+  document.getElementById('rComments').value = d.comments || '';
+
+  // Supplier group
+  const mfr = (d.film_manufacturer || '').trim();
+  const grp = SUPPLIER_GROUPS[mfr] || mfr;
+  const sel = document.getElementById('rGroup');
+  for (let opt of sel.options) if (opt.value === grp) { sel.value = grp; break; }
+
+  // Confidence badge
+  const badge = document.getElementById('confBadge');
+  const c = d.confidence || 'medium';
+  badge.className = 'confidence-badge ' + (c === 'high' ? 'conf-hi' : c === 'medium' ? 'conf-mid' : 'conf-lo');
+  badge.textContent = '● ' + c.charAt(0).toUpperCase() + c.slice(1) + ' Confidence';
+
+  // Lanes
+  buildLaneTable(d.lanes || []);
+}
+
+function buildLaneTable(lanes) {
+  const tbody = document.getElementById('laneTbody');
+  tbody.innerHTML = '';
+  for (let i = 1; i <= 12; i++) {
+    const laneData = lanes.find(l => l.lane === i) || { lane: i, pressures: [null,null,null,null,null,null] };
+    const p = (laneData.pressures || []).concat([null,null,null,null,null,null]).slice(0,6);
+    const tr = document.createElement('tr');
+    let tdLane = document.createElement('td');
+    tdLane.textContent = `Lane ${i}`;
+    tr.appendChild(tdLane);
+    p.forEach((v, j) => {
+      const td = document.createElement('td');
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.min = 0; inp.max = 2000; inp.step = 1;
+      inp.value = v !== null ? v : '';
+      inp.dataset.lane = i; inp.dataset.pos = j;
+      inp.oninput = () => { colorInput(inp); updateLaneAvg(i); };
+      colorInput(inp);
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+    const avgTd = document.createElement('td');
+    avgTd.className = 'lane-avg-cell'; avgTd.id = `avg-lane-${i}`;
+    tr.appendChild(avgTd);
+    tbody.appendChild(tr);
+    updateLaneAvg(i);
+  }
+}
+
+function colorInput(inp) {
+  const v = parseFloat(inp.value);
+  inp.className = isNaN(v) ? '' : v < 300 ? 'low-danger' : v < 800 ? 'low-warn' : '';
+}
+
+function updateLaneAvg(lane) {
+  const inputs = document.querySelectorAll(`input[data-lane="${lane}"]`);
+  const vals = [...inputs].map(i => parseFloat(i.value)).filter(v => !isNaN(v) && v > 0);
+  const cell = document.getElementById(`avg-lane-${lane}`);
+  cell.textContent = vals.length ? (vals.reduce((a,b)=>a+b)/vals.length).toFixed(1) : '—';
+}
+
+function getFormData() {
+  // Collect all lane readings
+  const lanes = [];
+  for (let i = 1; i <= 12; i++) {
+    const inputs = document.querySelectorAll(`input[data-lane="${i}"]`);
+    const p = [...inputs].map(inp => parseFloat(inp.value) || null);
+    lanes.push({ lane: i, pressures: p });
+  }
+  return {
+    mfr: document.getElementById('rMfr').value.trim(),
+    tester: document.getElementById('rTester').value.trim(),
+    lot: document.getElementById('rLot').value.trim(),
+    roll: document.getElementById('rRoll').value.trim(),
+    machine: document.getElementById('rMachine').value.trim(),
+    date: document.getElementById('rDate').value,
+    po: document.getElementById('rPO').value.trim(),
+    group: document.getElementById('rGroup').value ||
+           SUPPLIER_GROUPS[document.getElementById('rMfr').value.trim()] || '',
+    comments: document.getElementById('rComments').value.trim(),
+    lanes
+  };
+}
+
+// ── Queue Management ──────────────────────────────────────────────────────
+function addToQueue() {
+  const d = getFormData();
+  if (!d.lot && !d.po) { showError('Please enter at least a Lot Code or PO number.'); return; }
+  if (!d.date) { showError('Please enter the date of test.'); return; }
+
+  // Compute test stats
+  const allReadings = d.lanes.flatMap(l => l.pressures.filter(v => v !== null && v > 0 && v <= 2000));
+  if (allReadings.length === 0) { showError('No valid pressure readings found. Please fill in at least some readings.'); return; }
+
+  const testAvg = (allReadings.reduce((a,b)=>a+b)/allReadings.length).toFixed(2);
+  const testMin = Math.min(...allReadings);
+  const testMax = Math.max(...allReadings);
+
+  const entry = { ...d, testAvg, testMin, testMax, addedAt: new Date().toISOString() };
+  queue.push(entry);
+  sessionStorage.setItem('scan_queue', JSON.stringify(queue));
+  renderQueue();
+  resetCapture();
+  showError('');
+  document.getElementById('panel4').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderQueue() {
+  const list = document.getElementById('queueList');
+  const count = document.getElementById('queueCount');
+  const btn = document.getElementById('downloadBtn');
+  const clr = document.getElementById('clearBtn');
+  count.textContent = queue.length;
+  btn.disabled = queue.length === 0;
+  clr.style.display = queue.length ? 'block' : 'none';
+
+  if (queue.length === 0) {
+    list.innerHTML = '<div class="empty-queue">No scans in queue yet. Scan a sheet above and add it here.</div>';
+    return;
+  }
+  list.innerHTML = queue.map((e, i) => `
+    <div class="queue-item">
+      <div class="qi-info">
+        <div class="qi-field"><div class="qi-label">Date</div><div class="qi-val">${e.date}</div></div>
+        <div class="qi-field"><div class="qi-label">PO / Lot</div><div class="qi-val">${e.po||'—'} / ${e.lot||'—'}</div></div>
+        <div class="qi-field"><div class="qi-label">Manufacturer</div><div class="qi-val">${e.mfr||'—'}</div></div>
+        <div class="qi-field"><div class="qi-label">Machine</div><div class="qi-val">${e.machine||'—'}</div></div>
+        <div class="qi-field"><div class="qi-label">Avg Pressure</div><div class="qi-val qi-avg">${e.testAvg} psi</div></div>
+        <div class="qi-field"><div class="qi-label">Datapoints</div><div class="qi-val">${e.lanes.flatMap(l=>l.pressures.filter(v=>v>0)).length}</div></div>
+      </div>
+      <button class="qi-remove" onclick="removeQueue(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeQueue(i) {
+  queue.splice(i, 1);
+  sessionStorage.setItem('scan_queue', JSON.stringify(queue));
+  renderQueue();
+}
+
+function clearQueue() {
+  if (!confirm('Clear all queued scans?')) return;
+  queue = [];
+  sessionStorage.removeItem('scan_queue');
+  renderQueue();
+}
+
+// ── CSV Download ───────────────────────────────────────────────────────────
+function downloadQueue() {
+  if (queue.length === 0) return;
+
+  const COLS = ['DATE','Lot Code','Film Manufacturer','Supplier Group','PO','Machine',
+    'Master Roll 1','Master Roll 2','Weight','Tested By','Lane',
+    'Pressure1','Pressure2','Pressure3','Pressure4','Pressure5','Pressure6',
+    'PressureAverage','PressureMIN','PressureMAX','Comments'];
+
+  const rows = [COLS.join(',')];
+
+  queue.forEach(e => {
+    e.lanes.forEach(l => {
+      const p = (l.pressures || []).concat([null,null,null,null,null,null]).slice(0,6);
+      const vals = p.filter(v => v !== null && v > 0);
+      const row = [
+        e.date, e.lot, e.mfr, e.group || e.mfr, e.po,
+        e.machine, e.roll ? e.roll.split('/')[0].trim() : '',
+        e.roll ? (e.roll.split('/')[1]||'').trim() : '',
+        '2.0 OZ', e.tester, l.lane,
+        p[0]||'', p[1]||'', p[2]||'', p[3]||'', p[4]||'', p[5]||'',
+        e.testAvg, e.testMin, e.testMax,
+        `"${(e.comments||'').replace(/"/g,'""')}"`
+      ];
+      rows.push(row.join(','));
+    });
+  });
+
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `burst-scans_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  document.getElementById('errorMsg').textContent = msg;
+  box.className = 'error-box' + (msg ? ' show' : '');
+}
+
+// Init
+renderQueue();
+</script>
+</body>
+</html>
