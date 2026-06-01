@@ -322,6 +322,9 @@ setTheme(dark);
 window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',e=>setTheme(e.matches));
 
 const MAX_P=2000,PAGE=50;
+// Stack-safe min/max for large arrays (avoids "Maximum call stack" from Math.min(...bigArray))
+function arrMin(a){let m=Infinity;for(let i=0;i<a.length;i++)if(a[i]<m)m=a[i];return m}
+function arrMax(a){let m=-Infinity;for(let i=0;i<a.length;i++)if(a[i]>m)m=a[i];return m}
 let allData=[],fData=[],allTests=[],sortCol='date',sortDir=-1,pg=1,charts={};
 let activeTest=null;
 
@@ -335,8 +338,14 @@ function valid(r){
 
 /* Load */
 async function init(){
+  let raw;
   try{
-    const raw=await new Promise((res,rej)=>Papa.parse('data/database.csv',{download:true,header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}));
+    raw=await new Promise((res,rej)=>Papa.parse('data/database.csv',{download:true,header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}));
+  }catch(e){
+    document.getElementById('loadingDiv').innerHTML=`<span style="color:var(--danger)">Failed to load database.csv — check the file exists at data/database.csv</span>`;
+    return;
+  }
+  try{
     allData=raw.filter(valid);
     const years=[...new Set(allData.map(r=>r.DATE&&r.DATE.slice(0,4)).filter(Boolean))].map(Number).filter(n=>n>2000).sort();
     if(years.length){
@@ -354,7 +363,10 @@ async function init(){
     setupFilters();applyFilters();
     document.getElementById('loadingDiv').style.display='none';
     document.getElementById('dash').style.display='block';
-  }catch(e){document.getElementById('loadingDiv').innerHTML=`<span style="color:var(--danger)">Failed to load database.csv</span>`}
+  }catch(e){
+    console.error(e);
+    document.getElementById('loadingDiv').innerHTML=`<span style="color:var(--danger)">Error rendering dashboard: ${e.message}</span>`;
+  }
 }
 
 /* Upload */
@@ -462,7 +474,7 @@ function groupTests(data){
   });
   return Object.values(map).map(t=>{
     const r=t.readings;
-    return{...t,avg:r.length?(r.reduce((a,b)=>a+b)/r.length).toFixed(1):'—',min:r.length?Math.min(...r):'—',max:r.length?Math.max(...r):'—',count:r.length}
+    return{...t,avg:r.length?(r.reduce((a,b)=>a+b)/r.length).toFixed(1):'—',min:r.length?arrMin(r):'—',max:r.length?arrMax(r):'—',count:r.length}
   }).sort((a,b)=>b.date.localeCompare(a.date));
 }
 
@@ -473,8 +485,8 @@ function renderKPIs(){
   const maxs=allTests.map(t=>+t.max).filter(v=>!isNaN(v));
   document.getElementById('kIncoming').textContent=allTests.length.toLocaleString();
   document.getElementById('kAvg').textContent=avgs.length?(avgs.reduce((a,b)=>a+b)/avgs.length).toFixed(0):'—';
-  document.getElementById('kMin').textContent=mins.length?Math.min(...mins):'—';
-  document.getElementById('kMax').textContent=maxs.length?Math.max(...maxs):'—';
+  document.getElementById('kMin').textContent=mins.length?arrMin(mins):'—';
+  document.getElementById('kMax').textContent=maxs.length?arrMax(maxs):'—';
   document.getElementById('kPOs').textContent=new Set(fData.map(r=>r.PO).filter(Boolean)).size;
   document.getElementById('kLots').textContent=new Set(fData.map(r=>r['Lot Code']).filter(Boolean)).size;
   // Pass/fail on individual readings vs threshold
@@ -549,7 +561,7 @@ function renderCharts(){
   fData.forEach(r=>{const g=r['Supplier Group']||r['Film Manufacturer'];if(!top4.includes(g))return;for(let i=1;i<=6;i++){const v=+r[`Pressure${i}`];if(!isNaN(v)&&v>0&&v<=MAX_P){if(!mG[g])mG[g]=[];mG[g].push(v)}}});
   const allR=Object.values(mG).flat();
   if(allR.length){
-    const lo=Math.max(0,Math.min(...allR)-150),hi=Math.min(MAX_P,Math.max(...allR)+150),steps=100,step=(hi-lo)/steps;
+    const lo=Math.max(0,arrMin(allR)-150),hi=Math.min(MAX_P,arrMax(allR)+150),steps=100,step=(hi-lo)/steps;
     const xs=Array.from({length:steps+1},(_,i)=>(lo+i*step).toFixed(0));
     const bds=Object.entries(mG).map(([name,vals],i)=>{
       const n=new Set(yearTests.filter(t=>t.group===name||t.mfr===name).map(t=>`${t.date}|${t.lot}`)).size;
@@ -712,6 +724,61 @@ function downloadTest(){
 /* ── Monthly Report → opens dedicated page ── */
 function generateReport(){ window.location.href='report.html'; }
 
+
+/* ── Supplier Scorecard ───────────────────────────────────────────────────── */
+function computeScorecard(){
+  const thr=getThreshold();
+  const sup={};
+  allTests.forEach(t=>{
+    const g=t.group||t.mfr;if(!g)return;
+    if(!sup[g])sup[g]={name:g,tests:[],readings:[]};
+    sup[g].tests.push(t);
+    t.lanes.forEach(l=>l.p.forEach(v=>{if(v>0&&v<=MAX_P)sup[g].readings.push(v)}));
+  });
+  return Object.values(sup).filter(s=>s.readings.length>0).map(s=>{
+    const r=s.readings;
+    const avg=r.reduce((a,b)=>a+b)/r.length;
+    const sd=Math.sqrt(r.map(v=>(v-avg)**2).reduce((a,b)=>a+b)/r.length);
+    const passRate=r.filter(v=>v>=thr).length/r.length*100;
+    const minSeen=arrMin(r);
+    const n=s.tests.length;
+    const cv=avg>0?sd/avg:0;
+    // Trend: recent half avg vs older half avg
+    const sorted=[...s.tests].sort((a,b)=>a.date.localeCompare(b.date));
+    let trend=0;
+    if(sorted.length>=4){
+      const half=Math.floor(sorted.length/2);
+      const older=sorted.slice(0,half).map(t=>+t.avg).filter(v=>!isNaN(v));
+      const newer=sorted.slice(half).map(t=>+t.avg).filter(v=>!isNaN(v));
+      if(older.length&&newer.length)trend=(newer.reduce((a,b)=>a+b)/newer.length)-(older.reduce((a,b)=>a+b)/older.length);
+    }
+    const avgScore=Math.min(100,(avg/1200)*100);
+    const consScore=Math.max(0,100-cv*400);
+    const score=avgScore*0.40+passRate*0.35+consScore*0.25;
+    const grade=score>=90?'A':score>=80?'B':score>=70?'C':score>=60?'D':'F';
+    return{...s,avg,sd,passRate,minSeen,n,score,grade,trend};
+  }).sort((a,b)=>b.score-a.score);
+}
+
+function renderScorecard(){
+  const cards=computeScorecard();
+  document.getElementById('scorecardCount').textContent=`${cards.length} suppliers`;
+  const gc=g=>({A:'#10b981',B:'#4f7cff',C:'#f59e0b',D:'#fb923c',F:'#ef4444'}[g]||'#6b7280');
+  const trend=t=>t>30?'<span style="color:var(--accent2)">▲ rising</span>':t<-30?'<span style="color:var(--danger)">▼ falling</span>':'<span style="color:var(--muted)">▬ stable</span>';
+  document.getElementById('scorecardBody').innerHTML=cards.map((c,i)=>`
+    <tr>
+      <td style="font-weight:700;color:var(--muted)">#${i+1}</td>
+      <td style="font-weight:600">${c.name}</td>
+      <td><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${gc(c.grade)};color:#fff;font-weight:700;font-size:13px">${c.grade}</span></td>
+      <td style="font-weight:600;color:${gc(c.grade)}">${c.score.toFixed(0)}</td>
+      <td>${c.n}</td>
+      <td class="${pClass(c.avg)}">${c.avg.toFixed(0)} psi</td>
+      <td style="color:${c.sd<150?'var(--accent2)':c.sd<250?'var(--warn)':'var(--danger)'}">±${c.sd.toFixed(0)}</td>
+      <td style="color:${c.passRate>=95?'var(--accent2)':c.passRate>=85?'var(--warn)':'var(--danger)'};font-weight:600">${c.passRate.toFixed(1)}%</td>
+      <td class="${pClass(c.minSeen)}">${c.minSeen}</td>
+      <td>${trend(c.trend)}</td>
+    </tr>`).join('');
+}
 
 function renderAll(){renderKPIs();renderSnapshot();renderCharts();renderScorecard();renderTable()}
 init();
