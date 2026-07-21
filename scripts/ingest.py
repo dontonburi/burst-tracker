@@ -16,10 +16,10 @@ from pathlib import Path
 DB_PATH = Path(__file__).parent.parent / "data" / "database.csv"
 SHEET_NAME = "DATABASE"
 EXPECTED_COLUMNS = [
-    "DATE", "Lot Code", "Film Manufacturer", "PO", "Machine",
+    "DATE", "Lot Code", "Film Manufacturer", "Supplier Group", "PO", "Machine",
     "Master Roll 1", "Master Roll 2", "Weight", "Tested By", "Lane",
     "Pressure1", "Pressure2", "Pressure3", "Pressure4", "Pressure5", "Pressure6",
-    "PressureAverage", "PressureMIN", "PressureMAX"
+    "PressureAverage", "PressureMIN", "PressureMAX", "Comments", "Test ID"
 ]
 
 
